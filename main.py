@@ -1,4 +1,4 @@
-
+"""
 from utils import generate_ecs_task_execution_policy, generate_ecs_task_policy, process
 
 generate_ecs_task_execution_policy(
@@ -60,7 +60,7 @@ terraform_options = {
 }
 process("/tmp/tf-gen", repo, repo_branch, module_name, templates, terraform_options)
 
-"""
+""
 module_name = "target-resource-redis-tmp"
 terraform_options = {
     "resource_type": "redis",

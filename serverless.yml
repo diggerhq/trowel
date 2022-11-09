@@ -1,0 +1,20 @@
+service: trowel
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  ecr:
+    images:
+      appimage:
+        path: ./
+
+package:
+  individually: true
+  exclude:
+    - ./**
+
+functions:
+  generate_terraform:
+    image: 209539466991.dkr.ecr.us-east-1.amazonaws.com/trowel-lambda:latest
+    timeout: 20
