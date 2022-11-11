@@ -4,17 +4,17 @@
 
 {% for module in modules %}
   {% if module.type == "vpc" %}
-    module "{{ module.name}}" {
-      source = "{{ module.source }}"
-      network_name = "{{module.name}}"
+    module "{{ module.module_name}}" {
+      source = "./{{ module.module_name }}"
+      network_name = "{{module.module_name}}"
       region = "{{ aws_region }}"
       tags = {
-        digger_identifier = "{{module.name}}"
+        digger_identifier = "{{module.module_name}}"
       }
     }
   {% elif module.type == "container" %}
-    module "{{ module.name }}" {
-      source = "{{ module.source }}"
+    module "{{ module.module_name }}" {
+      source = "./{{ module.module_name }}"
       vpc_id = module.{{ network_module_name }}.vpc_id
       ecs_cluster_name = "{{module.aws_app_identifier}}"
       ecs_service_name = "{{module.aws_app_identifier}}"

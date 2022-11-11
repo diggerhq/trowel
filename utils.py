@@ -5,6 +5,8 @@ import re
 import shutil
 import subprocess
 import tempfile
+from pprint import pprint
+
 from jinja2 import Template
 
 
@@ -256,70 +258,96 @@ def process_main_tf(dest_dir, terraform_options, main_template_file_path):
         jinja_vars_file.write(json.dumps(terraform_options, indent=2))
 
 
-def generate_terraform_project(terraform_project_dir):
+def generate_terraform_project(terraform_project_dir, config):
     terraform_dir = f"{terraform_project_dir}/terraform"
 
     if os.path.isdir(terraform_dir):
         shutil.rmtree(terraform_dir)
     os.makedirs(os.path.abspath(terraform_dir))
+    network_module_name = None
+    alb_subnet_ids = None
+    ecs_subnet_ids = None
 
-    # vpc
-    vpc_terraform_dir = f"{terraform_dir}/vpc"
-    vpc_repo = "target-network-module"
-    vpc_repo_branch = "main"
+    updated_config = {'modules': []}
 
-    # ecs with public facing alb
-    ecs_terraform_dir = f"{terraform_dir}/ecs"
-    ecs_repo = "target-ecs-module"
-    ecs_repo_branch = "dev"
+    for m in config['modules']:
+        if m['type'] == 'vpc':
+            network_module_name = m['module_name']
+            alb_subnet_ids = f"module.{network_module_name}.public_subnets"
+            ecs_subnet_ids = f"module.{network_module_name}.private_subnets"
 
-    terraform_options = {
-        "environment_config": {},
-        "aws_app_identifier": "test-app",
-        "launch_type": "FARGATE",
-        "load_balancer": "true",
-        "internal": str(True).lower(),
-        "is_monitoring_enabled": True,
-    }
+            vpc_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            vpc_repo = "target-network-module"  # todo: parse m['target']
+            vpc_repo_branch = "main"            # todo: parse m['target']
 
-    process_vpc_module(
-        dest_dir=vpc_terraform_dir,
-        terraform_options=terraform_options,
-        repo=vpc_repo,
-        repo_branch=vpc_repo_branch,
-    )
+            terraform_options = m   # todo: move to a separate dict
 
-    process_ecs_module(
-        dest_dir=ecs_terraform_dir,
-        terraform_options=terraform_options,
-        repo=ecs_repo,
-        repo_branch=ecs_repo_branch,
-    )
+            process_vpc_module(
+                dest_dir=vpc_terraform_dir,
+                terraform_options=terraform_options,
+                repo=vpc_repo,
+                repo_branch=vpc_repo_branch,
+            )
+            updated_config['modules'].append(m)
 
-    network_module_name = "myvpc"
-    ecs_module_name = "ecs"
-    app_name = "myapp"
+    for m in config['modules']:
+        if m['type'] == 'container':
+            ecs_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            ecs_repo = "target-ecs-module"      # todo: parse m['target']
+            ecs_repo_branch = "dev"             # todo: parse m['target']
 
-    main_tf_options = {
-        "aws_region": "us-east-1",
-        "modules": [
-            {"type": "vpc", "source": "./vpc", "name": network_module_name},
-            {
-                "type": "container",
-                "name": ecs_module_name,
-                "source": "./ecs",
-                "aws_app_identifier": app_name,
-                "container_port": "8000",
-                "container_name": app_name,
-                "ecs_task_execution_policy_json": "{}",
-                "ecs_task_policy_json": "{}",
-                "alb_subnet_ids": f"module.{network_module_name}.public_subnets",
-                "ecs_subnet_ids": f"module.{network_module_name}.private_subnets",
-            },
-        ],
-        "network_module_name": network_module_name,
-    }
 
+            m['alb_subnet_ids'] = alb_subnet_ids
+            m['ecs_subnet_ids'] = ecs_subnet_ids
+            terraform_options = m  # todo: move to a separate dict
+
+            """
+            terraform_options = {
+                "environment_config": {},
+                "aws_app_identifier": "test-app",
+                "launch_type": "FARGATE",
+                "load_balancer": "true",
+                "internal": str(True).lower(),
+                "is_monitoring_enabled": True,
+            }"""
+
+            process_ecs_module(
+                dest_dir=ecs_terraform_dir,
+                terraform_options=terraform_options,
+                repo=ecs_repo,
+                repo_branch=ecs_repo_branch,
+            )
+            updated_config['modules'].append(m)
+
+        """
+        network_module_name = "myvpc"
+        ecs_module_name = "ecs"
+        app_name = "myapp"
+     
+        main_tf_options = {
+            "aws_region": "us-east-1",
+            "modules": [
+                {"type": "vpc", "source": "./vpc", "name": network_module_name},
+                {
+                    "type": "container",
+                    "name": ecs_module_name,
+                    "source": "./ecs",
+                    "aws_app_identifier": app_name,
+                    "container_port": "8000",
+                    "container_name": app_name,
+                    "ecs_task_execution_policy_json": "{}",
+                    "ecs_task_policy_json": "{}",
+                    "alb_subnet_ids": f"module.{network_module_name}.public_subnets",
+                    "ecs_subnet_ids": f"module.{network_module_name}.private_subnets",
+                },
+            ],
+            "network_module_name": network_module_name,
+        }
+        """
+
+    pprint(f'updated_config: {updated_config}')
+    main_tf_options = config
+    main_tf_options['network_module_name'] = network_module_name
     process_main_tf(
         dest_dir=terraform_dir,
         terraform_options=main_tf_options,
@@ -330,6 +358,7 @@ def generate_terraform_project(terraform_project_dir):
         name = "terraform"
         extension = "zip"
 
+        # it's important to not to change current dir in lambda otherwise it will blow up on the next request
         current_dir = os.getcwd()
         try:
             os.chdir(terraform_dir)
