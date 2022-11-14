@@ -9,6 +9,8 @@ from pprint import pprint
 
 from jinja2 import Template
 
+from exceptions import PayloadValidationException
+
 
 def generate_ecs_task_execution_policy(
     path, s3_bucket_arn_list, ssm_list, sqs_arn_list
@@ -61,7 +63,6 @@ def generate_ecs_task_execution_policy(
         sort_keys=False,
         indent=2,
     )
-    print(s)
 
     with open(f"{path}/ecs_task_execution_policy.json", "w") as f:
         f.write(s)
@@ -105,14 +106,14 @@ def generate_ecs_task_policy(path, use_ssm=False):
         sort_keys=False,
         indent=2,
     )
-    print(s)
 
     with open(f"{path}/ecs_task_policy.json", "w") as f:
         f.write(s)
 
 
 def clone_public_github_repo(repo, ref, path="."):
-    url = f'https://github.com/diggerhq/{repo}'
+    print(f"clone_public_github_repo: {repo}, {ref}")
+    url = f"https://github.com/diggerhq/{repo}"
     try:
         if ref is None:
             subprocess.run(["git", "clone", "--depth", "1", url, path], check=True)
@@ -121,7 +122,7 @@ def clone_public_github_repo(repo, ref, path="."):
                 ["git", "clone", "--depth", "1", "--branch", ref, url, path], check=True
             )
     except subprocess.CalledProcessError as cpe:
-        print(cpe)
+        print(f"clone_public_github_repo exception: {cpe}")
         raise
 
 
@@ -134,26 +135,40 @@ def strip_new_lines(text):
     for line in text.splitlines():
         if line and not line.isspace():
             result += line + "\n"
-        if line == "}":
+        if line and line[0] == "}":
             result += "\n"
     return result
+
+
+def format_generated_terraform(terraform_dir):
+    # run 'terraform fmt' first
+    terraform_format(terraform_dir)
+
+    # and then delete all empty lines in tf files
+    files = [f for f in os.listdir(terraform_dir) if re.match(r"^.*\.tf", f)]
+    for f in files:
+        with open(f"{terraform_dir}/{f}", "r") as tf_file:
+            tf_content = tf_file.read()
+            tf_content = strip_new_lines(tf_content)
+
+        with open(f"{terraform_dir}/{f}", "w") as tf_file:
+            tf_file.write(tf_content)
 
 
 def render_jinja_template(
     terraform_options, input_file, output_file, delete_original=False
 ):
-    with open(input_file) as tvars_file:
-        tvars_content = tvars_file.read()
-        tvars_template = Template(tvars_content)
-        tvars_content_rendered = tvars_template.render(terraform_options)
-        tvars_content_rendered = strip_new_lines(tvars_content_rendered)
+    with open(input_file) as template_file:
+        template_content = template_file.read()
+        template = Template(template_content)
+        template_rendered = template.render(terraform_options)
+        template_rendered = strip_new_lines(template_rendered)
 
-    # print(f'{input_file}: {len(tvars_content_rendered)}')
-
+    print(f"input_file: {input_file}, len: {len(template_rendered)}")
     # skip empty files
-    if len(tvars_content_rendered) > 0:
-        with open(output_file, "w") as tvars_file_output:
-            tvars_file_output.write(tvars_content_rendered)
+    if len(template_rendered) > 0:
+        with open(output_file, "w") as template_file_output:
+            template_file_output.write(template_rendered)
 
     if delete_original:
         os.remove(input_file)
@@ -175,8 +190,7 @@ def process(dest_dir, repo, repo_branch, module_name, templates, terraform_optio
     terraform_format(dest_jinja_dir)
 
 
-def process_vpc_module(dest_dir, terraform_options, repo, repo_branch):
-
+def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
     if os.path.isdir(dest_dir):
         shutil.rmtree(dest_dir)
 
@@ -196,20 +210,21 @@ def process_vpc_module(dest_dir, terraform_options, repo, repo_branch):
             jinja_template = f"{tmp_dir_name}/{t[0]}"
             jinja_result = f"{tmp_dir_name}/{t[1]}"
             render_jinja_template(terraform_options, jinja_template, jinja_result, True)
-        terraform_format(tmp_dir_name)
+
+        format_generated_terraform(tmp_dir_name)
 
         # copy generated files from tmp dir to dest_dir
         files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
         for f in files:
-            print(f)
             shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
 
-    jinja_vars_file = f"{dest_dir}/jinja.vars"
-    with open(jinja_vars_file, "w") as jinja_vars_file:
-        jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+    if debug:
+        jinja_vars_file = f"{dest_dir}/jinja.vars"
+        with open(jinja_vars_file, "w") as jinja_vars_file:
+            jinja_vars_file.write(json.dumps(terraform_options, indent=2))
 
 
-def process_ecs_module(dest_dir, terraform_options, repo, repo_branch):
+def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
     if os.path.isdir(dest_dir):
         shutil.rmtree(dest_dir)
 
@@ -229,7 +244,7 @@ def process_ecs_module(dest_dir, terraform_options, repo, repo_branch):
             jinja_template = f"{tmp_dir_name}/{t[0]}"
             jinja_result = f"{tmp_dir_name}/{t[1]}"
             render_jinja_template(terraform_options, jinja_template, jinja_result, True)
-        terraform_format(tmp_dir_name)
+        format_generated_terraform(tmp_dir_name)
 
         # copy generated files from tmp dir to dest_dir
         files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
@@ -237,121 +252,104 @@ def process_ecs_module(dest_dir, terraform_options, repo, repo_branch):
             print(f)
             shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
 
-    jinja_vars_file = f"{dest_dir}/jinja.vars"
-    with open(jinja_vars_file, "w") as jinja_vars_file:
-        jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+    if debug:
+        jinja_vars_file = f"{dest_dir}/jinja.vars"
+        with open(jinja_vars_file, "w") as jinja_vars_file:
+            jinja_vars_file.write(json.dumps(terraform_options, indent=2))
 
 
-def process_main_tf(dest_dir, terraform_options, main_template_file_path):
-    # if os.path.isdir(dest_dir):
-    #    shutil.rmtree(dest_dir)
-
-    # os.makedirs(os.path.abspath(dest_dir))
-
+def process_main_tf(dest_dir, terraform_options, main_template_file_path, debug=False):
     jinja_template = main_template_file_path
     jinja_result = f"{dest_dir}/main.tf"
     render_jinja_template(terraform_options, jinja_template, jinja_result, False)
-    terraform_format(dest_dir)
+    format_generated_terraform(dest_dir)
 
-    jinja_vars_file = f"{dest_dir}/jinja.vars"
-    with open(jinja_vars_file, "w") as jinja_vars_file:
-        jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+    if debug:
+        jinja_vars_file = f"{dest_dir}/jinja.vars"
+        with open(jinja_vars_file, "w") as jinja_vars_file:
+            jinja_vars_file.write(json.dumps(terraform_options, indent=2))
 
 
 def generate_terraform_project(terraform_project_dir, config):
+    debug = False
+    if "debug" in config and config["debug"]:
+        debug = True
+    if "modules" not in config:
+        raise PayloadValidationException(
+            '"modules" key is missing in provided configuration.'
+        )
     terraform_dir = f"{terraform_project_dir}/terraform"
 
     if os.path.isdir(terraform_dir):
         shutil.rmtree(terraform_dir)
     os.makedirs(os.path.abspath(terraform_dir))
     network_module_name = None
-    alb_subnet_ids = None
-    ecs_subnet_ids = None
 
-    updated_config = {'modules': []}
+    updated_config = {"modules": []}
 
-    for m in config['modules']:
-        if m['type'] == 'vpc':
-            network_module_name = m['module_name']
-            alb_subnet_ids = f"module.{network_module_name}.public_subnets"
-            ecs_subnet_ids = f"module.{network_module_name}.private_subnets"
-
+    for m in config["modules"]:
+        if m["type"] == "vpc":
+            network_module_name = m["module_name"]
             vpc_terraform_dir = f"{terraform_dir}/{m['module_name']}"
             vpc_repo = "target-network-module"  # todo: parse m['target']
-            vpc_repo_branch = "main"            # todo: parse m['target']
+            vpc_repo_branch = "main"  # todo: parse m['target']
 
-            terraform_options = m   # todo: move to a separate dict
+            terraform_options = m  # todo: move to a separate dict
 
             process_vpc_module(
                 dest_dir=vpc_terraform_dir,
                 terraform_options=terraform_options,
                 repo=vpc_repo,
                 repo_branch=vpc_repo_branch,
+                debug=debug,
             )
-            updated_config['modules'].append(m)
+            updated_config["modules"].append(m)
 
-    for m in config['modules']:
-        if m['type'] == 'container':
+    for m in config["modules"]:
+        if m["type"] == "container":
             ecs_terraform_dir = f"{terraform_dir}/{m['module_name']}"
-            ecs_repo = "target-ecs-module"      # todo: parse m['target']
-            ecs_repo_branch = "dev"             # todo: parse m['target']
+            ecs_repo = "target-ecs-module"  # todo: parse m['target']
+            ecs_repo_branch = "dev"  # todo: parse m['target']
 
+            public_subnets_ids = f"module.{network_module_name}.public_subnets"
+            private_subnets_ids = f"module.{network_module_name}.private_subnets"
 
-            m['alb_subnet_ids'] = alb_subnet_ids
-            m['ecs_subnet_ids'] = ecs_subnet_ids
+            if "intenal" in m and m["intenal"]:
+                m["ecs_subnet_ids"] = private_subnets_ids
+            else:
+                m["ecs_subnet_ids"] = public_subnets_ids
+            if "alb_intenal" in m and m["alb_intenal"]:
+                m["alb_subnet_ids"] = private_subnets_ids
+            else:
+                m["alb_subnet_ids"] = public_subnets_ids
+
             terraform_options = m  # todo: move to a separate dict
-
-            """
-            terraform_options = {
-                "environment_config": {},
-                "aws_app_identifier": "test-app",
-                "launch_type": "FARGATE",
-                "load_balancer": "true",
-                "internal": str(True).lower(),
-                "is_monitoring_enabled": True,
-            }"""
 
             process_ecs_module(
                 dest_dir=ecs_terraform_dir,
                 terraform_options=terraform_options,
                 repo=ecs_repo,
                 repo_branch=ecs_repo_branch,
+                debug=debug,
             )
-            updated_config['modules'].append(m)
+            generate_ecs_task_execution_policy(
+                ecs_terraform_dir,
+                s3_bucket_arn_list=[],
+                ssm_list=["*"],
+                sqs_arn_list=[],
+            )
 
-        """
-        network_module_name = "myvpc"
-        ecs_module_name = "ecs"
-        app_name = "myapp"
-     
-        main_tf_options = {
-            "aws_region": "us-east-1",
-            "modules": [
-                {"type": "vpc", "source": "./vpc", "name": network_module_name},
-                {
-                    "type": "container",
-                    "name": ecs_module_name,
-                    "source": "./ecs",
-                    "aws_app_identifier": app_name,
-                    "container_port": "8000",
-                    "container_name": app_name,
-                    "ecs_task_execution_policy_json": "{}",
-                    "ecs_task_policy_json": "{}",
-                    "alb_subnet_ids": f"module.{network_module_name}.public_subnets",
-                    "ecs_subnet_ids": f"module.{network_module_name}.private_subnets",
-                },
-            ],
-            "network_module_name": network_module_name,
-        }
-        """
+            generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
+            updated_config["modules"].append(m)
 
-    pprint(f'updated_config: {updated_config}')
+    pprint(f"updated_config: {updated_config}")
     main_tf_options = config
-    main_tf_options['network_module_name'] = network_module_name
+    main_tf_options["network_module_name"] = network_module_name
     process_main_tf(
         dest_dir=terraform_dir,
         terraform_options=main_tf_options,
         main_template_file_path="./main.template.tf",
+        debug=debug,
     )
 
     with tempfile.TemporaryDirectory() as tmp_dir_name:
@@ -362,7 +360,9 @@ def generate_terraform_project(terraform_project_dir, config):
         current_dir = os.getcwd()
         try:
             os.chdir(terraform_dir)
-            shutil.make_archive(base_name=name, format=extension, root_dir=terraform_dir)
+            shutil.make_archive(
+                base_name=name, format=extension, root_dir=terraform_dir
+            )
             shutil.move(f"{name}.{extension}", tmp_dir_name)
         finally:
             os.chdir(current_dir)
