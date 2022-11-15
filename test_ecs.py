@@ -1,10 +1,12 @@
 import os
+from distutils.dir_util import copy_tree
+from pathlib import Path
 
 from utils import generate_terraform_project
 
 current_dir = os.getcwd()
 
-config = payload = {
+config = {
     "target": "diggerhq/tf-module-bundler@master",
     "for_local_run": True,
     "aws_region": "us-east-1",
@@ -18,11 +20,11 @@ config = payload = {
             "target": "diggerhq/target-network-module@main",
             "type": "vpc",
             "network_name": "env-test-1",
-            "enable_vpc_endpoints": False,
+            "enable_vpc_endpoints": True,
             "enable_dns_hostnames": False,
             "enable_dns_support": True,
             "one_nat_gateway_per_az": True,
-            "enable_nat_gateway": False,
+            "enable_nat_gateway": True,
         },
         {
             "module_name": "container-test",
@@ -32,12 +34,14 @@ config = payload = {
             "task_memory": 2048,
             "health_check": "/",
             "load_balancer": True,
-            "internal": "true",
-            "container_port": 8080,
-            "health_check_matcher": "200",
+            "internal": True,
+            "container_port": 8000,
+            "health_check_matcher": "200-499",
+            #"enable_https_listener": True,
             "launch_type": "FARGATE",
             "aws_app_identifier": "test",
-            "monitoring_enabled": False,
+            "monitoring_enabled": True,
+            "lb_monitoring_enabled": True,
             "environment_variables": [
                 {"key": "TEST_VAR", "value": "TEST_VALUE"},
                 {"key": "TEST_VAR2", "value": "TEST_VALUE2"},
@@ -48,7 +52,9 @@ config = payload = {
     "security_groups": ["module.container-container-test.security_group_ids"],
 }
 
-generate_terraform_project(f'{current_dir}/terraform', config)
+home_path = str(Path.home())
+generate_terraform_project(f'{home_path}/tmp/t', config)
+copy_tree(f'{home_path}/tmp/t/terraform', f'{home_path}/tmp/t')
 
 
 """

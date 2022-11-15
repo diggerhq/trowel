@@ -8,6 +8,8 @@ provider "aws" {
       source = "./{{ module.module_name }}"
       network_name = "{{module.module_name}}"
       region = "{{ aws_region }}"
+      {{ "enable_nat_gateway=" + module.enable_nat_gateway | lower if module.enable_nat_gateway is defined else '' }}
+      {{ "one_nat_gateway_per_az=" + module.one_nat_gateway_per_az | lower if module.one_nat_gateway_per_az is defined else '' }}
       tags = {
         digger_identifier = "{{module.module_name}}"
       }
@@ -23,7 +25,6 @@ provider "aws" {
       container_port = {{module.container_port}}
       {{ "internal=" + module.internal | lower if module.internal is defined else '' }}
       region = "{{ aws_region }}"
-      alarms_sns_topic_arn = ""
       tags = {
         digger_identifier = "{{module.aws_app_identifier}}"
       }

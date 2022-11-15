@@ -314,11 +314,11 @@ def generate_terraform_project(terraform_project_dir, config):
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
             private_subnets_ids = f"module.{network_module_name}.private_subnets"
 
-            if "intenal" in m and m["intenal"]:
+            if "internal" in m and m["internal"]:
                 m["ecs_subnet_ids"] = private_subnets_ids
             else:
                 m["ecs_subnet_ids"] = public_subnets_ids
-            if "alb_intenal" in m and m["alb_intenal"]:
+            if "alb_internal" in m and m["alb_internal"]:
                 m["alb_subnet_ids"] = private_subnets_ids
             else:
                 m["alb_subnet_ids"] = public_subnets_ids
