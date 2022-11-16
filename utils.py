@@ -164,7 +164,6 @@ def render_jinja_template(
         template_rendered = template.render(terraform_options)
         template_rendered = strip_new_lines(template_rendered)
 
-    print(f"input_file: {input_file}, len: {len(template_rendered)}")
     # skip empty files
     if len(template_rendered) > 0:
         with open(output_file, "w") as template_file_output:
@@ -249,7 +248,6 @@ def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
         # copy generated files from tmp dir to dest_dir
         files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
         for f in files:
-            print(f)
             shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
 
     if debug:
@@ -268,6 +266,23 @@ def process_main_tf(dest_dir, terraform_options, main_template_file_path, debug=
         jinja_vars_file = f"{dest_dir}/jinja.vars"
         with open(jinja_vars_file, "w") as jinja_vars_file:
             jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+
+
+def parse_module_target(target):
+    """
+    parse module's target and return repo name and branch name
+    for example for diggerhq/target-network-module@main it should return ('target-network-module', 'main')
+    :param target:
+    :return:
+    """
+
+    target_regex = r'diggerhq\/([a-zA-Z-_]+)@([a-zA-Z-_/]+)'
+    result = re.search(target_regex, target)
+    if result and len(result.groups()) == 2:
+        groups = result.groups()
+        return groups[0], groups[1]
+    else:
+        raise PayloadValidationException(f'Target {target} is in a wrong format.')
 
 
 def generate_terraform_project(terraform_project_dir, config):
@@ -290,17 +305,16 @@ def generate_terraform_project(terraform_project_dir, config):
     for m in config["modules"]:
         if m["type"] == "vpc":
             network_module_name = m["module_name"]
-            vpc_terraform_dir = f"{terraform_dir}/{m['module_name']}"
-            vpc_repo = "target-network-module"  # todo: parse m['target']
-            vpc_repo_branch = "main"  # todo: parse m['target']
 
+            repo, branch = parse_module_target(m['target'])
+            vpc_terraform_dir = f"{terraform_dir}/{m['module_name']}"
             terraform_options = m  # todo: move to a separate dict
 
             process_vpc_module(
                 dest_dir=vpc_terraform_dir,
                 terraform_options=terraform_options,
-                repo=vpc_repo,
-                repo_branch=vpc_repo_branch,
+                repo=repo,
+                repo_branch=branch,
                 debug=debug,
             )
             updated_config["modules"].append(m)
@@ -308,8 +322,9 @@ def generate_terraform_project(terraform_project_dir, config):
     for m in config["modules"]:
         if m["type"] == "container":
             ecs_terraform_dir = f"{terraform_dir}/{m['module_name']}"
-            ecs_repo = "target-ecs-module"  # todo: parse m['target']
-            ecs_repo_branch = "dev"  # todo: parse m['target']
+
+            repo, branch = parse_module_target(m['target'])
+            vpc_terraform_dir = f"{terraform_dir}/{m['module_name']}"
 
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
             private_subnets_ids = f"module.{network_module_name}.private_subnets"
@@ -328,8 +343,8 @@ def generate_terraform_project(terraform_project_dir, config):
             process_ecs_module(
                 dest_dir=ecs_terraform_dir,
                 terraform_options=terraform_options,
-                repo=ecs_repo,
-                repo_branch=ecs_repo_branch,
+                repo=repo,
+                repo_branch=branch,
                 debug=debug,
             )
             generate_ecs_task_execution_policy(
@@ -342,7 +357,7 @@ def generate_terraform_project(terraform_project_dir, config):
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
             updated_config["modules"].append(m)
 
-    pprint(f"updated_config: {updated_config}")
+    #pprint(f"updated_config: {updated_config}")
     main_tf_options = config
     main_tf_options["network_module_name"] = network_module_name
     process_main_tf(

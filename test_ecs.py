@@ -10,10 +10,6 @@ config = {
     "target": "diggerhq/tf-module-bundler@master",
     "for_local_run": True,
     "aws_region": "us-east-1",
-    "aws_key": None,
-    "aws_secret": None,
-    "assume_role_arn": None,
-    "assume_role_external_id": None,
     "modules": [
         {
             "module_name": "network-env-test-1",
@@ -28,7 +24,7 @@ config = {
         },
         {
             "module_name": "container-test",
-            "target": "diggerhq/target-ecs-module@feat/render-secrets",
+            "target": "diggerhq/target-ecs-module@dev",
             "type": "container",
             "task_cpu": 1024,
             "task_memory": 2048,
