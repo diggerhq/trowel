@@ -2,7 +2,7 @@ import json
 import tempfile
 import traceback
 
-from exceptions import PayloadValidationException
+from exceptions import PayloadValidationException, LambdaError
 from utils import generate_terraform_project
 
 
@@ -15,8 +15,8 @@ def generate_terraform(event, context):
             with tempfile.TemporaryDirectory() as tmp_dir_name:
                 result = generate_terraform_project(tmp_dir_name, event)
                 return result
-    except PayloadValidationException as pve:
-        return {"statusCode": 500, "error": pve.message}
+    except LambdaError as le:
+        return {"statusCode": 500, "error": le.message}
     except Exception as e:
         print(traceback.format_exc())
         return {"statusCode": 500, "error": str(e)}

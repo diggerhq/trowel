@@ -24,7 +24,7 @@ config = {
         },
         {
             "module_name": "container-test",
-            "target": "diggerhq/target-ecs-module@dev",
+            "target": "diggerhq/target-ecs-module@devvvv",
             "type": "container",
             "task_cpu": 1024,
             "task_memory": 2048,

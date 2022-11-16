@@ -9,7 +9,7 @@ from pprint import pprint
 
 from jinja2 import Template
 
-from exceptions import PayloadValidationException
+from exceptions import PayloadValidationException, GitHubError
 
 
 def generate_ecs_task_execution_policy(
@@ -123,7 +123,7 @@ def clone_public_github_repo(repo, ref, path="."):
             )
     except subprocess.CalledProcessError as cpe:
         print(f"clone_public_github_repo exception: {cpe}")
-        raise
+        raise GitHubError(f'Failed to clone {repo}, branch: {ref}')
 
 
 def terraform_format(path="."):
