@@ -24,7 +24,7 @@ config = {
         },
         {
             "module_name": "container-test",
-            "target": "diggerhq/target-ecs-module@devvvv",
+            "target": "diggerhq/target-ecs-module@dev",
             "type": "container",
             "task_cpu": 1024,
             "task_memory": 2048,
@@ -44,8 +44,15 @@ config = {
             ],
             "secret_keys": ["SECRET_1", "SECRET_2"],
         },
-    ],
-    "security_groups": ["module.container-container-test.security_group_ids"],
+        {
+            "module_name": "db",
+            "target": "diggerhq/target-rds-module@dev",
+            "type": "resource",
+            "network_name": "env-test-1",
+            "resource_type": "database",
+            "aws_app_identifier": "test",
+        },
+    ]
 }
 
 home_path = str(Path.home())

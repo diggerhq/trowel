@@ -32,12 +32,24 @@ provider "aws" {
   {% elif module.type == "resource" %}
     module "{{ module.module_name }}" {
       source = "./{{ module.module_name }}"
-      vpc_id = module.network.vpc_id
-      private_subnets = module.{{ network_module_name }}.private_subnets
-      public_subnets = module.{{ network_module_name }}.public_subnets
-      security_groups = flatten({{ security_groups | join(", ") or []}})
+      vpc_id = module.{{ network_module_name }}.vpc_id
+      identifier = "{{module.aws_app_identifier}}"
       aws_app_identifier = "{{module.aws_app_identifier}}"
-      region = "{{ aws_region }}"
+      subnets = {{module.subnets}}
+
+      {{ 'allocated_storage="' + module.allocated_storage + '"' if module.allocated_storage is defined else '' }}
+      {{ 'storage_type="' + module.storage_type + '"' if module.storage_type is defined  else '' }}
+      {{ 'engine="' + module.engine + '"' if module.engine is defined  else '' }}
+      {{ 'ingress_port="' + module.ingress_port + '"' if module.ingress_port is defined  else '' }}
+      {{ 'connection_schema="' + module.connection_schema + '"' if module.connection_schema is defined  else '' }}
+      {{ 'engine_version="' + module.engine_version + '"' if module.engine_version is defined  else '' }}
+      {{ 'instance_class="' + module.instance_class + '"' if module.instance_class is defined  else '' }}
+      {{ 'db_name="' + module.db_name + '"' if module.db_name is defined  else '' }}
+      {{ 'database_username="' + module.database_username + '"' if module.database_username is defined  else '' }}
+      {{ 'publicly_accessible="' + module.publicly_accessible + '"' if module.publicly_accessible is defined  else '' }}
+      {{ 'snapshot_identifier="' + module.snapshot_identifier + '"' if module.snapshot_identifier is defined  else '' }}
+      {{ 'security_groups=' + module.security_groups if module.security_groups is defined  else '' }}
+
       tags = {
         digger_identifier = "{{module.aws_app_identifier}}"
       }

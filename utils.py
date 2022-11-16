@@ -123,7 +123,7 @@ def clone_public_github_repo(repo, ref, path="."):
             )
     except subprocess.CalledProcessError as cpe:
         print(f"clone_public_github_repo exception: {cpe}")
-        raise GitHubError(f'Failed to clone {repo}, branch: {ref}')
+        raise GitHubError(f"Failed to clone {repo}, branch: {ref}")
 
 
 def terraform_format(path="."):
@@ -256,6 +256,42 @@ def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
             jinja_vars_file.write(json.dumps(terraform_options, indent=2))
 
 
+def process_resource_module(
+    dest_dir, terraform_options, repo, repo_branch, debug=False
+):
+    if os.path.isdir(dest_dir):
+        shutil.rmtree(dest_dir)
+
+    os.makedirs(os.path.abspath(dest_dir))
+
+    with tempfile.TemporaryDirectory() as tmp_dir_name:
+        clone_public_github_repo(repo, repo_branch, tmp_dir_name)
+
+        jinja_template_files = [
+            f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.template\..", f)
+        ]
+        jinja_templates = []
+        for j in jinja_template_files:
+            jinja_templates.append((j, j.replace(".template", "")))
+
+        for t in jinja_templates:
+            jinja_template = f"{tmp_dir_name}/{t[0]}"
+            jinja_result = f"{tmp_dir_name}/{t[1]}"
+            render_jinja_template(terraform_options, jinja_template, jinja_result, True)
+
+        format_generated_terraform(tmp_dir_name)
+
+        # copy generated files from tmp dir to dest_dir
+        files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
+        for f in files:
+            shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
+
+    if debug:
+        jinja_vars_file = f"{dest_dir}/jinja.vars"
+        with open(jinja_vars_file, "w") as jinja_vars_file:
+            jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+
+
 def process_main_tf(dest_dir, terraform_options, main_template_file_path, debug=False):
     jinja_template = main_template_file_path
     jinja_result = f"{dest_dir}/main.tf"
@@ -276,13 +312,13 @@ def parse_module_target(target):
     :return:
     """
 
-    target_regex = r'diggerhq\/([a-zA-Z-_]+)@([a-zA-Z-_/]+)'
+    target_regex = r"diggerhq\/([a-zA-Z-_]+)@([a-zA-Z-_/]+)"
     result = re.search(target_regex, target)
     if result and len(result.groups()) == 2:
         groups = result.groups()
         return groups[0], groups[1]
     else:
-        raise PayloadValidationException(f'Target {target} is in a wrong format.')
+        raise PayloadValidationException(f"Target {target} is in a wrong format.")
 
 
 def generate_terraform_project(terraform_project_dir, config):
@@ -299,14 +335,14 @@ def generate_terraform_project(terraform_project_dir, config):
         shutil.rmtree(terraform_dir)
     os.makedirs(os.path.abspath(terraform_dir))
     network_module_name = None
+    ecs_security_groups_list = []
 
     updated_config = {"modules": []}
 
     for m in config["modules"]:
         if m["type"] == "vpc":
             network_module_name = m["module_name"]
-
-            repo, branch = parse_module_target(m['target'])
+            repo, branch = parse_module_target(m["target"])
             vpc_terraform_dir = f"{terraform_dir}/{m['module_name']}"
             terraform_options = m  # todo: move to a separate dict
 
@@ -321,11 +357,9 @@ def generate_terraform_project(terraform_project_dir, config):
 
     for m in config["modules"]:
         if m["type"] == "container":
+            ecs_security_groups_list.append(f"module.{m['module_name']}.ecs_task_security_group_id")
             ecs_terraform_dir = f"{terraform_dir}/{m['module_name']}"
-
-            repo, branch = parse_module_target(m['target'])
-            vpc_terraform_dir = f"{terraform_dir}/{m['module_name']}"
-
+            repo, branch = parse_module_target(m["target"])
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
             private_subnets_ids = f"module.{network_module_name}.private_subnets"
 
@@ -357,7 +391,33 @@ def generate_terraform_project(terraform_project_dir, config):
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
             updated_config["modules"].append(m)
 
-    #pprint(f"updated_config: {updated_config}")
+    ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
+    print(f"ecs_security_groups: {ecs_security_groups}")
+    for m in config["modules"]:
+        if m["type"] == "resource":
+            repo, branch = parse_module_target(m["target"])
+            resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            public_subnets_ids = f"module.{network_module_name}.public_subnets"
+            private_subnets_ids = f"module.{network_module_name}.private_subnets"
+
+            if "publicly_accessible" in m and m["publicly_accessible"]:
+                m["subnets"] = public_subnets_ids
+            else:
+                m["subnets"] = private_subnets_ids
+            m['security_groups'] = ecs_security_groups
+
+            terraform_options = m  # todo: move to a separate dict
+
+            process_resource_module(
+                dest_dir=resource_terraform_dir,
+                terraform_options=terraform_options,
+                repo=repo,
+                repo_branch=branch,
+                debug=debug,
+            )
+            updated_config["modules"].append(m)
+
+    # pprint(f"updated_config: {updated_config}")
     main_tf_options = config
     main_tf_options["network_module_name"] = network_module_name
     process_main_tf(
