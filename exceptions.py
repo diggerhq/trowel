@@ -10,3 +10,6 @@ class PayloadValidationException(LambdaError):
 class GitHubError(LambdaError):
     pass
 
+
+class TerraformFormatError(LambdaError):
+    pass

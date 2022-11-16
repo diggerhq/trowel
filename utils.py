@@ -9,7 +9,7 @@ from pprint import pprint
 
 from jinja2 import Template
 
-from exceptions import PayloadValidationException, GitHubError
+from exceptions import PayloadValidationException, GitHubError, TerraformFormatError
 
 
 def generate_ecs_task_execution_policy(
@@ -142,7 +142,10 @@ def strip_new_lines(text):
 
 def format_generated_terraform(terraform_dir):
     # run 'terraform fmt' first
-    terraform_format(terraform_dir)
+    try:
+        terraform_format(terraform_dir)
+    except subprocess.CalledProcessError:
+        raise TerraformFormatError("Failed to format terraform project.")
 
     # and then delete all empty lines in tf files
     files = [f for f in os.listdir(terraform_dir) if re.match(r"^.*\.tf", f)]
@@ -153,6 +156,11 @@ def format_generated_terraform(terraform_dir):
 
         with open(f"{terraform_dir}/{f}", "w") as tf_file:
             tf_file.write(tf_content)
+
+
+def convert_to_hcl(t):
+    print(f'convert_to_hcl: {str(t)}')
+    return str(t).replace("'", '"')
 
 
 def render_jinja_template(
@@ -228,6 +236,11 @@ def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
         shutil.rmtree(dest_dir)
 
     os.makedirs(os.path.abspath(dest_dir))
+
+    if 'environment_variables' in terraform_options:
+        terraform_options['environment_variables'] = convert_to_hcl(terraform_options['environment_variables'])
+    if 'secret_keys' in terraform_options:
+        terraform_options['secret_keys'] = convert_to_hcl(terraform_options['secret_keys'])
 
     with tempfile.TemporaryDirectory() as tmp_dir_name:
         clone_public_github_repo(repo, repo_branch, tmp_dir_name)

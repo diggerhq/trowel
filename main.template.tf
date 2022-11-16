@@ -23,7 +23,11 @@ provider "aws" {
       alb_subnet_ids = {{module.alb_subnet_ids}}
       ecs_subnet_ids = {{module.ecs_subnet_ids}}
       container_port = {{module.container_port}}
+
       {{ "internal=" + module.internal | lower if module.internal is defined else '' }}
+      {{ 'environment_variables=' + module.environment_variables if module.environment_variables is defined  else '' }}
+      {{ 'secret_keys=' + module.secret_keys if module.secret_keys is defined  else '' }}
+
       region = "{{ aws_region }}"
       tags = {
         digger_identifier = "{{module.aws_app_identifier}}"

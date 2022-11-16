@@ -42,7 +42,8 @@ config = {
                 {"key": "TEST_VAR", "value": "TEST_VALUE"},
                 {"key": "TEST_VAR2", "value": "TEST_VALUE2"},
             ],
-            "secret_keys": ["SECRET_1", "SECRET_2"],
+            "secret_keys": ["SECRET_1", "SECRET_2", "DATABASE_URL"],
+            "secrets_mapping": "DATABASE_URL:database_url_ssm_arn",
         },
         {
             "module_name": "db",
