@@ -58,6 +58,20 @@ provider "aws" {
         digger_identifier = "{{module.aws_app_identifier}}"
       }
     }
+  {% elif module.type == "s3" %}
+    module "{{ module.module_name }}" {
+      source = "./{{ module.module_name }}"
+    }
+  {% elif module.type == "sqs" %}
+    module "{{ module.module_name }}" {
+      source = "./{{ module.module_name }}"
+    }
+  {% elif module.type == "api-gateway" %}
+    module "{{ module.module_name }}" {
+      source = "./{{ module.module_name }}"
+      subnets = {{ module.subnets }}
+      vpc_id = module.{{ network_module_name }}.vpc_id
+    }
   {% endif %}
 {% endfor %}
 

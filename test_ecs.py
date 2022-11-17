@@ -10,7 +10,26 @@ config = {
     "target": "diggerhq/tf-module-bundler@master",
     "for_local_run": True,
     "aws_region": "us-east-1",
+    "environment_id": "test-env-id",
     "modules": [
+ #       {
+ ##           "module_name": "s3-buckets",
+   #         "target": "diggerhq/target-s3-module@main",
+    #        "buckets": ["test-bucket-1", "test-bucket-2"],
+     #       "type": "s3",
+      #  },
+#        {
+ #           "module_name": "queues",
+  #          "target": "diggerhq/target-s3-module@main",
+   #         "queues": ["test-queue-1", "test-queue-2"],
+    #        "type": "sqs",
+     #   },
+        {
+            "module_name": "api",
+            "target": "diggerhq/target-api-gateway-module@main",
+            "type": "api-gateway",
+            "name": "test-api",
+        },
         {
             "module_name": "network-env-test-1",
             "target": "diggerhq/target-network-module@main",

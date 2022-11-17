@@ -5,11 +5,44 @@ import re
 import shutil
 import subprocess
 import tempfile
-from pprint import pprint
 
 from jinja2 import Template
+from jinja2.filters import FILTERS
 
 from exceptions import PayloadValidationException, GitHubError, TerraformFormatError
+
+
+def add_debug_info(dest_dir, terraform_options):
+    jinja_vars_file = f"{dest_dir}/jinja.vars"
+    with open(jinja_vars_file, "w") as jinja_vars_file:
+        jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+
+
+def recreate_dir(dest_dir):
+    if os.path.isdir(dest_dir):
+        shutil.rmtree(dest_dir)
+    os.makedirs(os.path.abspath(dest_dir))
+
+
+def run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir):
+    with tempfile.TemporaryDirectory() as tmp_dir_name:
+        clone_public_github_repo(repo, repo_branch, tmp_dir_name)
+        jinja_template_files = [
+            f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.template\..", f)
+        ]
+        jinja_templates = []
+        for j in jinja_template_files:
+            jinja_templates.append((j, j.replace(".template", "")))
+        for t in jinja_templates:
+            jinja_template = f"{tmp_dir_name}/{t[0]}"
+            jinja_result = f"{tmp_dir_name}/{t[1]}"
+            render_jinja_template(terraform_options, jinja_template, jinja_result, True)
+        format_generated_terraform(tmp_dir_name)
+
+        # copy generated files from tmp dir to dest_dir
+        files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
+        for f in files:
+            shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
 
 
 def generate_ecs_task_execution_policy(
@@ -159,8 +192,20 @@ def format_generated_terraform(terraform_dir):
 
 
 def convert_to_hcl(t):
-    print(f'convert_to_hcl: {str(t)}')
+    print(f"convert_to_hcl: {str(t)}")
     return str(t).replace("'", '"')
+
+
+def dashify(value, attribute=None):
+    return str(value).replace('_', '-')
+
+
+def underscorify(value, attribute=None):
+    return str(value).replace('-', '_')
+
+
+FILTERS["dashify"] = dashify
+FILTERS["underscorify"] = underscorify
 
 
 def render_jinja_template(
@@ -198,111 +243,68 @@ def process(dest_dir, repo, repo_branch, module_name, templates, terraform_optio
 
 
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
-    if os.path.isdir(dest_dir):
-        shutil.rmtree(dest_dir)
+    recreate_dir(dest_dir)
 
-    os.makedirs(os.path.abspath(dest_dir))
-
-    with tempfile.TemporaryDirectory() as tmp_dir_name:
-        clone_public_github_repo(repo, repo_branch, tmp_dir_name)
-
-        jinja_template_files = [
-            f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.template\..", f)
-        ]
-        jinja_templates = []
-        for j in jinja_template_files:
-            jinja_templates.append((j, j.replace(".template", "")))
-
-        for t in jinja_templates:
-            jinja_template = f"{tmp_dir_name}/{t[0]}"
-            jinja_result = f"{tmp_dir_name}/{t[1]}"
-            render_jinja_template(terraform_options, jinja_template, jinja_result, True)
-
-        format_generated_terraform(tmp_dir_name)
-
-        # copy generated files from tmp dir to dest_dir
-        files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
-        for f in files:
-            shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
+    run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
 
     if debug:
-        jinja_vars_file = f"{dest_dir}/jinja.vars"
-        with open(jinja_vars_file, "w") as jinja_vars_file:
-            jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+        add_debug_info(dest_dir, terraform_options)
 
 
 def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
-    if os.path.isdir(dest_dir):
-        shutil.rmtree(dest_dir)
+    recreate_dir(dest_dir)
 
-    os.makedirs(os.path.abspath(dest_dir))
+    if "environment_variables" in terraform_options:
+        terraform_options["environment_variables"] = convert_to_hcl(
+            terraform_options["environment_variables"]
+        )
+    if "secret_keys" in terraform_options:
+        terraform_options["secret_keys"] = convert_to_hcl(
+            terraform_options["secret_keys"]
+        )
 
-    if 'environment_variables' in terraform_options:
-        terraform_options['environment_variables'] = convert_to_hcl(terraform_options['environment_variables'])
-    if 'secret_keys' in terraform_options:
-        terraform_options['secret_keys'] = convert_to_hcl(terraform_options['secret_keys'])
-
-    with tempfile.TemporaryDirectory() as tmp_dir_name:
-        clone_public_github_repo(repo, repo_branch, tmp_dir_name)
-
-        jinja_template_files = [
-            f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.template\..", f)
-        ]
-        jinja_templates = []
-        for j in jinja_template_files:
-            jinja_templates.append((j, j.replace(".template", "")))
-
-        for t in jinja_templates:
-            jinja_template = f"{tmp_dir_name}/{t[0]}"
-            jinja_result = f"{tmp_dir_name}/{t[1]}"
-            render_jinja_template(terraform_options, jinja_template, jinja_result, True)
-        format_generated_terraform(tmp_dir_name)
-
-        # copy generated files from tmp dir to dest_dir
-        files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
-        for f in files:
-            shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
+    run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
 
     if debug:
-        jinja_vars_file = f"{dest_dir}/jinja.vars"
-        with open(jinja_vars_file, "w") as jinja_vars_file:
-            jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+        add_debug_info(dest_dir, terraform_options)
+
+
+def process_s3_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
+    recreate_dir(dest_dir)
+
+    run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
+
+    if debug:
+        add_debug_info(dest_dir, terraform_options)
+
+
+def process_sqs_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
+    recreate_dir(dest_dir)
+
+    run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
+
+    if debug:
+        add_debug_info(dest_dir, terraform_options)
+
+
+def process_api_gateway_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
+    recreate_dir(dest_dir)
+
+    run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
+
+    if debug:
+        add_debug_info(dest_dir, terraform_options)
 
 
 def process_resource_module(
     dest_dir, terraform_options, repo, repo_branch, debug=False
 ):
-    if os.path.isdir(dest_dir):
-        shutil.rmtree(dest_dir)
+    recreate_dir(dest_dir)
 
-    os.makedirs(os.path.abspath(dest_dir))
-
-    with tempfile.TemporaryDirectory() as tmp_dir_name:
-        clone_public_github_repo(repo, repo_branch, tmp_dir_name)
-
-        jinja_template_files = [
-            f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.template\..", f)
-        ]
-        jinja_templates = []
-        for j in jinja_template_files:
-            jinja_templates.append((j, j.replace(".template", "")))
-
-        for t in jinja_templates:
-            jinja_template = f"{tmp_dir_name}/{t[0]}"
-            jinja_result = f"{tmp_dir_name}/{t[1]}"
-            render_jinja_template(terraform_options, jinja_template, jinja_result, True)
-
-        format_generated_terraform(tmp_dir_name)
-
-        # copy generated files from tmp dir to dest_dir
-        files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
-        for f in files:
-            shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
+    run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
 
     if debug:
-        jinja_vars_file = f"{dest_dir}/jinja.vars"
-        with open(jinja_vars_file, "w") as jinja_vars_file:
-            jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+        add_debug_info(dest_dir, terraform_options)
 
 
 def process_main_tf(dest_dir, terraform_options, main_template_file_path, debug=False):
@@ -312,9 +314,19 @@ def process_main_tf(dest_dir, terraform_options, main_template_file_path, debug=
     format_generated_terraform(dest_dir)
 
     if debug:
-        jinja_vars_file = f"{dest_dir}/jinja.vars"
-        with open(jinja_vars_file, "w") as jinja_vars_file:
-            jinja_vars_file.write(json.dumps(terraform_options, indent=2))
+        add_debug_info(dest_dir, terraform_options)
+
+
+def process_static_files(dest_dir):
+    shutil.copytree('./staticfiles/', f'{dest_dir}/', dirs_exist_ok=True)
+
+
+def process_env_file(dest_dir, env_id):
+    with open(f'{dest_dir}/.digger', 'w') as f:
+        f.write(f"ENVIRONMENT_ID={env_id}")
+
+
+# Further file processing goes here
 
 
 def parse_module_target(target):
@@ -342,6 +354,11 @@ def generate_terraform_project(terraform_project_dir, config):
         raise PayloadValidationException(
             '"modules" key is missing in provided configuration.'
         )
+    if "environment_id" not in config:
+        raise PayloadValidationException(
+            '"environment_id" key is missing in provided configuration.'
+        )
+    environment_id = config['environment_id']
     terraform_dir = f"{terraform_project_dir}/terraform"
 
     if os.path.isdir(terraform_dir):
@@ -370,7 +387,9 @@ def generate_terraform_project(terraform_project_dir, config):
 
     for m in config["modules"]:
         if m["type"] == "container":
-            ecs_security_groups_list.append(f"module.{m['module_name']}.ecs_task_security_group_id")
+            ecs_security_groups_list.append(
+                f"module.{m['module_name']}.ecs_task_security_group_id"
+            )
             ecs_terraform_dir = f"{terraform_dir}/{m['module_name']}"
             repo, branch = parse_module_target(m["target"])
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
@@ -417,11 +436,54 @@ def generate_terraform_project(terraform_project_dir, config):
                 m["subnets"] = public_subnets_ids
             else:
                 m["subnets"] = private_subnets_ids
-            m['security_groups'] = ecs_security_groups
+            m["security_groups"] = ecs_security_groups
 
             terraform_options = m  # todo: move to a separate dict
 
             process_resource_module(
+                dest_dir=resource_terraform_dir,
+                terraform_options=terraform_options,
+                repo=repo,
+                repo_branch=branch,
+                debug=debug,
+            )
+            updated_config["modules"].append(m)
+
+    for m in config["modules"]:
+        if m["type"] == "api-gateway":
+            repo, branch = parse_module_target(m["target"])
+            resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            subnets = f"module.{network_module_name}.public_subnets"
+            m['subnets'] = subnets
+            terraform_options = m  # todo: move to a separate dict
+
+            process_api_gateway_module(
+                dest_dir=resource_terraform_dir,
+                terraform_options=terraform_options,
+                repo=repo,
+                repo_branch=branch,
+                debug=debug,
+            )
+            updated_config["modules"].append(m)
+
+        if m["type"] == "sqs":
+            repo, branch = parse_module_target(m["target"])
+            resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            terraform_options = m  # todo: move to a separate dict
+
+            process_sqs_module(
+                dest_dir=resource_terraform_dir,
+                terraform_options=terraform_options,
+                repo=repo,
+                repo_branch=branch,
+                debug=debug,
+            )
+            updated_config["modules"].append(m)
+        if m["type"] == "s3":
+            repo, branch = parse_module_target(m["target"])
+            resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            terraform_options = m  # todo: move to a separate dict
+            process_s3_module(
                 dest_dir=resource_terraform_dir,
                 terraform_options=terraform_options,
                 repo=repo,
@@ -440,6 +502,9 @@ def generate_terraform_project(terraform_project_dir, config):
         debug=debug,
     )
 
+    process_static_files(dest_dir=terraform_dir)
+    process_env_file(dest_dir=terraform_dir, env_id=environment_id)
+
     with tempfile.TemporaryDirectory() as tmp_dir_name:
         name = "terraform"
         extension = "zip"
@@ -449,9 +514,9 @@ def generate_terraform_project(terraform_project_dir, config):
         try:
             os.chdir(terraform_dir)
             shutil.make_archive(
-                base_name=name, format=extension, root_dir=terraform_dir
+                base_name=f'{current_dir}/{name}', format=extension, root_dir=terraform_dir
             )
-            shutil.move(f"{name}.{extension}", tmp_dir_name)
+            shutil.move(f"{current_dir}/{name}.{extension}", tmp_dir_name)
         finally:
             os.chdir(current_dir)
 
