@@ -514,9 +514,9 @@ def generate_terraform_project(terraform_project_dir, config):
         try:
             os.chdir(terraform_dir)
             shutil.make_archive(
-                base_name=f'{current_dir}/{name}', format=extension, root_dir=terraform_dir
+                base_name=f'{tmp_dir_name}/{name}', format=extension, root_dir=terraform_dir
             )
-            shutil.move(f"{current_dir}/{name}.{extension}", tmp_dir_name)
+            #shutil.move(f"{current_dir}/{name}.{extension}", tmp_dir_name)
         finally:
             os.chdir(current_dir)
 
