@@ -18,3 +18,4 @@ functions:
   generate-terraform:
     image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/trowel-lambda:latest
     timeout: 20
+    name: trowel-generate-terraform
