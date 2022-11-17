@@ -31,6 +31,7 @@ jobs:
         ECR_REPOSITORY: trowel-lambda
         IMAGE_TAG: ${{ github.sha }}
       run: |
+        echo ${{ steps.login-ecr.outputs.registry }}
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  -t $ECR_REGISTRY/$ECR_REPOSITORY:dev -f Dockerfile .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev
