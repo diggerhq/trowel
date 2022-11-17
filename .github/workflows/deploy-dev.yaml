@@ -1,4 +1,4 @@
-name: Update image and redeploy to Digger Dev AWS Account
+name: Dev account deployment
 
 on:
   push:

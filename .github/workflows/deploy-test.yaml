@@ -1,4 +1,4 @@
-name: Update image and redeploy to Digger Test AWS Account
+name: Test account deployment
 
 on:
   push:
