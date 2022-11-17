@@ -17,6 +17,6 @@ package:
 
 functions:
   generate-terraform:
-    image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/trowel-lambda:latest
+    image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/trowel-lambda-${env:STAGE_NAME}:latest
     timeout: 20
 
