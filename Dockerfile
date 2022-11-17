@@ -11,6 +11,7 @@ RUN terraform -v
 
 COPY *.py ${LAMBDA_TASK_ROOT}/
 COPY *.tf ${LAMBDA_TASK_ROOT}/
+COPY staticfiles ${LAMBDA_TASK_ROOT}/staticfiles
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
 WORKDIR ${LAMBDA_TASK_ROOT}
