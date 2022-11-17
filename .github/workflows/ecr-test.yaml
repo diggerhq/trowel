@@ -42,6 +42,8 @@ jobs:
   deploy:
     name: deploy
     runs-on: [self-hosted]
+    env:
+      AWS_ACCOUNT_ID: 209539466991
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js 18
