@@ -397,7 +397,15 @@ def generate_terraform_project(terraform_project_dir, config):
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
             private_subnets_ids = f"module.{network_module_name}.private_subnets"
 
-            if "internal" in m and m["internal"]:
+            internal = False
+            if 'internal' in m:
+                internal_value = m["internal"]
+                if isinstance(internal_value, bool):
+                    internal = internal_value
+                elif isinstance(internal_value, str) and internal_value == 'true':
+                    internal = True
+
+            if internal:
                 m["ecs_subnet_ids"] = private_subnets_ids
             else:
                 m["ecs_subnet_ids"] = public_subnets_ids
