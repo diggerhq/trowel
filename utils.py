@@ -433,7 +433,7 @@ def generate_terraform_project(terraform_project_dir, config):
 
             if m['resource_type'] == "database":
                 repo = 'target-rds-module'  # todo repo, branch hardcoded for now
-                branch = 'main'
+                branch = 'dev'
             elif m['resource_type'] == "redis":
                 repo = 'target-elasticache-module'  # todo repo, branch hardcoded for now
                 branch = 'main'
