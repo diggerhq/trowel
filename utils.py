@@ -392,6 +392,8 @@ def generate_terraform_project(terraform_project_dir, config):
             )
             ecs_terraform_dir = f"{terraform_dir}/{m['module_name']}"
             repo, branch = parse_module_target(m["target"])
+            repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
+            branch = 'dev'
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
             private_subnets_ids = f"module.{network_module_name}.private_subnets"
 
