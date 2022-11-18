@@ -434,22 +434,26 @@ def generate_terraform_project(terraform_project_dir, config):
             if m['resource_type'] == "database":
                 repo = 'target-rds-module'  # todo repo, branch hardcoded for now
                 branch = 'dev'
+                public_subnets_ids = f"module.{network_module_name}.public_subnets"
+                private_subnets_ids = f"module.{network_module_name}.private_subnets"
+
+                if "publicly_accessible" in m and m["publicly_accessible"]:
+                    m["subnets"] = public_subnets_ids
+                else:
+                    m["subnets"] = private_subnets_ids
+
             elif m['resource_type'] == "redis":
                 repo = 'target-elasticache-module'  # todo repo, branch hardcoded for now
                 branch = 'main'
+                private_subnets_ids = f"module.{network_module_name}.private_subnets"
+                m["private_subnets_ids"] = private_subnets_ids
             elif m['resource_type'] == "docdb":
                 repo = 'target-docdb-module'  # todo repo, branch hardcoded for now
                 branch = 'main'
 
             resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
-            public_subnets_ids = f"module.{network_module_name}.public_subnets"
-            private_subnets_ids = f"module.{network_module_name}.private_subnets"
-
-            if "publicly_accessible" in m and m["publicly_accessible"]:
-                m["subnets"] = public_subnets_ids
-            else:
-                m["subnets"] = private_subnets_ids
             m["security_groups"] = ecs_security_groups
+
 
             terraform_options = m  # todo: move to a separate dict
 

@@ -33,7 +33,7 @@ provider "aws" {
         digger_identifier = "{{module.aws_app_identifier}}"
       }
     }
-  {% elif module.type == "resource" %}
+  {% elif module.type == "resource" and module.resource_type == "database" %}
     module "{{ module.module_name }}" {
       source = "./{{ module.module_name }}"
       vpc_id = module.{{ network_module_name }}.vpc_id
@@ -54,6 +54,22 @@ provider "aws" {
       {{ 'snapshot_identifier="' + module.snapshot_identifier + '"' if module.snapshot_identifier is defined  else '' }}
       {{ 'security_groups=' + module.security_groups if module.security_groups is defined  else '' }}
 
+      tags = {
+        digger_identifier = "{{module.aws_app_identifier}}"
+      }
+    }
+  {% elif module.type == "resource" and module.resource_type == "redis" %}
+    module "{{ module.module_name }}" {
+      source = "./{{ module.module_name }}"
+      vpc_id = module.{{ network_module_name }}.vpc_id
+      cluster_id = "{{module.aws_app_identifier}}"
+      private_subnets = {{module.private_subnets_ids}}
+      cluster_description = "{{module.aws_app_identifier}}"
+
+      {{ 'engine_version="' + module.redis_engine_version + '"' if module.redis_engine_version is defined  else '' }}
+      {{ 'redis_node_type="' + module.redis_instance_class + '"' if module.redis_instance_class is defined  else '' }}
+      {{ 'redis_number_nodes=' + module.redis_number_nodes | string if module.redis_number_nodes is defined  else '' }}
+      {{ 'security_groups=' + module.security_groups if module.security_groups is defined  else '' }}
       tags = {
         digger_identifier = "{{module.aws_app_identifier}}"
       }
