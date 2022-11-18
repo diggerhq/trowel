@@ -430,6 +430,17 @@ def generate_terraform_project(terraform_project_dir, config):
     for m in config["modules"]:
         if m["type"] == "resource":
             repo, branch = parse_module_target(m["target"])
+
+            if m['resource_type'] == "database":
+                repo = 'target-rds-module'  # todo repo, branch hardcoded for now
+                branch = 'main'
+            elif m['resource_type'] == "redis":
+                repo = 'target-elasticache-module'  # todo repo, branch hardcoded for now
+                branch = 'main'
+            elif m['resource_type'] == "docdb":
+                repo = 'target-docdb-module'  # todo repo, branch hardcoded for now
+                branch = 'main'
+
             resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
             private_subnets_ids = f"module.{network_module_name}.private_subnets"
