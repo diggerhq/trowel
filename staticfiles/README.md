@@ -14,7 +14,7 @@ You need to have the following tools installed on your machine or CI system to r
 
 - [AWS cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) - for configuring access to AWS
 - [terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) - for configuring terraform
-- [dgctl](https://diggerhq.gitbook.io/trowel-docs/) - optinal, for configuring your remote terraform state
+- [dgctl](https://diggerhq.gitbook.io/trowel-docs/) - optional, for configuring your remote terraform state
 
 
 ## On your machine
