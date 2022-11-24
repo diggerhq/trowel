@@ -74,6 +74,22 @@ provider "aws" {
         digger_identifier = "{{module.aws_app_identifier}}"
       }
     }
+    {% elif module.type == "resource" and module.resource_type == "docdb" %}
+    module "{{ module.module_name }}" {
+      source = "./{{ module.module_name }}"
+      vpc_id = module.{{ network_module_name }}.vpc_id
+      cluster_identifier = "{{module.aws_app_identifier}}"
+      private_subnets = {{module.private_subnets_ids}}
+
+
+      {{ 'engine_version="' + module.docdb_engine_version + '"' if module.docdb_engine_version is defined  else '' }}
+      {{ 'instance_class="' + module.docdb_instance_class + '"' if module.docdb_instance_class is defined  else '' }}
+      {{ 'instances_number=' + module.instances_number | string if module.instances_number is defined  else '' }}
+      {{ 'security_groups=' + module.security_groups if module.security_groups is defined  else '' }}
+      tags = {
+        digger_identifier = "{{module.aws_app_identifier}}"
+      }
+    }
   {% elif module.type == "s3" %}
     module "{{ module.module_name }}" {
       source = "./{{ module.module_name }}"

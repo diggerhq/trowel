@@ -458,6 +458,9 @@ def generate_terraform_project(terraform_project_dir, config):
             elif m['resource_type'] == "docdb":
                 repo = 'target-docdb-module'  # todo repo, branch hardcoded for now
                 branch = 'main'
+                private_subnets_ids = f"module.{network_module_name}.private_subnets"
+                m["private_subnets_ids"] = private_subnets_ids
+
 
             resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
             m["security_groups"] = ecs_security_groups
