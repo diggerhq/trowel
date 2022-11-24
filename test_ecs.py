@@ -7,6 +7,14 @@ from utils import generate_terraform_project
 current_dir = os.getcwd()
 
 config = {
+    # -- uncomment this option to test repo overrides, function will pull from
+    # codecommit repository
+    # "override_repo": {
+    #     "repo": "codecommit-repo-name",
+    #     "repo_username": "CODECOMMIT_USER_FROM_IAM",
+    #     "repo_password": "CODECOMMIT_PW_FROM_IAM",
+    #     "repo_region": "us-east-1",
+    # },
     "override_repo": {
         "repo": "trowel-override-test",
         "repo_username": "codecommit-test-user-at-682903345738",
