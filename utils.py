@@ -583,7 +583,7 @@ def generate_terraform_project(terraform_project_dir, config):
     if "override_repo" in config:
         process_terraform_overrides(
             dest_dir=terraform_dir,
-            override_repo_name=config["override_repo"]["repo"],
+            override_repo_name=config["override_repo"]["repo_name"],
             override_repo_username=config["override_repo"]["repo_username"],
             override_repo_password=config["override_repo"]["repo_password"],
             override_repo_region=config["override_repo"]["repo_region"],
