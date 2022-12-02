@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-
+from urllib.parse import quote
 from jinja2 import Template
 from jinja2.filters import FILTERS
 
@@ -183,6 +183,7 @@ def clone_public_github_repo(repo, ref, path="."):
 
 def clone_codecommit_repo(repo, repo_user, repo_password, repo_region="us-east-2", ref=None, path="."):
     print(f"clone_codecommit_repo: {repo}")
+    repo_password = quote(repo_password, safe='')
     url = f"https://{repo_user}:{repo_password}@git-codecommit.{repo_region}.amazonaws.com/v1/repos/{repo}"
     try:
         if ref is None:
