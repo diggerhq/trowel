@@ -24,6 +24,8 @@ provider "aws" {
       ecs_subnet_ids = {{module.ecs_subnet_ids}}
       container_port = {{module.container_port}}
 
+      {{ "task_cpu=" + module.task_cpu | lower if module.task_cpu is defined else '' }}
+      {{ "task_memory=" + module.task_memory | lower if module.task_memory is defined else '' }}
       {{ "internal=" + module.internal | lower if module.internal is defined else '' }}
       {{ 'environment_variables=' + module.environment_variables if module.environment_variables is defined  else '' }}
       {{ 'secret_keys=' + module.secret_keys if module.secret_keys is defined  else '' }}
@@ -48,7 +50,7 @@ provider "aws" {
       {{ 'connection_schema="' + module.connection_schema + '"' if module.connection_schema is defined  else '' }}
       {{ 'engine_version="' + module.engine_version + '"' if module.engine_version is defined  else '' }}
       {{ 'instance_class="' + module.instance_class + '"' if module.instance_class is defined  else '' }}
-      {{ 'db_name="' + module.db_name + '"' if module.db_name is defined  else '' }}
+      {{ 'database_name="' + module.database_name + '"' if module.database_name is defined  else '' }}
       {{ 'database_username="' + module.database_username + '"' if module.database_username is defined  else '' }}
       {{ 'publicly_accessible="' + module.publicly_accessible + '"' if module.publicly_accessible is defined  else '' }}
       {{ 'snapshot_identifier="' + module.snapshot_identifier + '"' if module.snapshot_identifier is defined  else '' }}
