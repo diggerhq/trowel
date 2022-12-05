@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-
+from urllib.parse import quote
 from jinja2 import Template
 from jinja2.filters import FILTERS
 
@@ -25,6 +25,28 @@ def recreate_dir(dest_dir):
 
 
 def run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir):
+    with tempfile.TemporaryDirectory() as tmp_dir_name:
+        clone_public_github_repo(repo, repo_branch, tmp_dir_name)
+        jinja_template_files = [
+            f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.template\..", f)
+        ]
+        jinja_templates = []
+        for j in jinja_template_files:
+            jinja_templates.append((j, j.replace(".template", "")))
+        for t in jinja_templates:
+            jinja_template = f"{tmp_dir_name}/{t[0]}"
+            jinja_result = f"{tmp_dir_name}/{t[1]}"
+            render_jinja_template(terraform_options, jinja_template, jinja_result, True)
+        format_generated_terraform(tmp_dir_name)
+
+        # copy generated files from tmp dir to dest_dir
+        files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
+        for f in files:
+            shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
+
+
+
+def process_overrides(repo_link, repo_username, repo_password, dest_dir):
     with tempfile.TemporaryDirectory() as tmp_dir_name:
         clone_public_github_repo(repo, repo_branch, tmp_dir_name)
         jinja_template_files = [
@@ -159,6 +181,22 @@ def clone_public_github_repo(repo, ref, path="."):
         raise GitHubError(f"Failed to clone {repo}, branch: {ref}")
 
 
+def clone_codecommit_repo(repo, repo_user, repo_password, repo_region="us-east-2", ref=None, path="."):
+    print(f"clone_codecommit_repo: {repo}")
+    repo_password = quote(repo_password, safe='')
+    url = f"https://{repo_user}:{repo_password}@git-codecommit.{repo_region}.amazonaws.com/v1/repos/{repo}"
+    try:
+        if ref is None:
+            subprocess.run(["git", "clone", "--depth", "1", url, path], check=True)
+        else:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", "--branch", ref, url, path], check=True
+            )
+    except subprocess.CalledProcessError as cpe:
+        print(f"clone_codecommit_repo exception: {cpe}")
+        raise GitHubError(f"Failed to clone {repo}, branch: {ref}")
+
+
 def terraform_format(path="."):
     subprocess.run(["terraform", "fmt"], cwd=path, check=True)
 
@@ -240,6 +278,17 @@ def process(dest_dir, repo, repo_branch, module_name, templates, terraform_optio
         render_jinja_template(terraform_options, jinja_template, jinja_result, True)
 
     terraform_format(dest_jinja_dir)
+
+
+def process_terraform_overrides(dest_dir, override_repo_name, override_repo_username, override_repo_password, override_repo_region, override_repo_branch=None):
+    with tempfile.TemporaryDirectory() as tmp_dir_name:
+        overrides_dir = os.path.join(tmp_dir_name, "overrides")
+        clone_codecommit_repo(override_repo_name, override_repo_username, override_repo_password, override_repo_region, ref=override_repo_branch, path=tmp_dir_name)
+
+        # copy generated files from tmp dir to dest_dir
+        files = [f for f in os.listdir(overrides_dir) if re.match(r"^.*\.tf", f)]
+        for f in files:
+            shutil.copy2(os.path.join(overrides_dir, f), dest_dir)
 
 
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
@@ -532,6 +581,15 @@ def generate_terraform_project(terraform_project_dir, config):
 
     process_static_files(dest_dir=terraform_dir)
     process_env_file(dest_dir=terraform_dir, env_id=environment_id)
+    if "override_repo" in config:
+        process_terraform_overrides(
+            dest_dir=terraform_dir,
+            override_repo_name=config["override_repo"]["repo_name"],
+            override_repo_username=config["override_repo"]["repo_username"],
+            override_repo_password=config["override_repo"]["repo_password"],
+            override_repo_region=config["override_repo"]["repo_region"],
+            override_repo_branch=config["override_repo"].get("repo_branch", None),
+        )
 
     with tempfile.TemporaryDirectory() as tmp_dir_name:
         name = "terraform"
