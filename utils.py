@@ -285,10 +285,12 @@ def process_terraform_overrides(dest_dir, override_repo_name, override_repo_user
         overrides_dir = os.path.join(tmp_dir_name, "overrides")
         clone_codecommit_repo(override_repo_name, override_repo_username, override_repo_password, override_repo_region, ref=override_repo_branch, path=tmp_dir_name)
 
-        # copy generated files from tmp dir to dest_dir
-        files = [f for f in os.listdir(overrides_dir) if re.match(r"^.*\.tf", f)]
-        for f in files:
-            shutil.copy2(os.path.join(overrides_dir, f), dest_dir)
+        # copy files from overrides dir if it does exist
+        if os.path.exists(overrides_dir):
+            # copy generated files from tmp dir to dest_dir
+            files = [f for f in os.listdir(overrides_dir) if re.match(r"^.*\.tf", f)]
+            for f in files:
+                shutil.copy2(os.path.join(overrides_dir, f), dest_dir)
 
 
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
