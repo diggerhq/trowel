@@ -33,7 +33,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: trowel-lambda-test
-        IMAGE_TAG: ${{ github.sha }}
+        IMAGE_TAG: ${{ github.ref_name }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f Dockerfile .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -47,6 +47,7 @@ jobs:
     env:
       AWS_ACCOUNT_ID: 209539466991
       STAGE_NAME: test
+      RELEASE_VERSION: ${{ github.ref_name }}
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js 18
