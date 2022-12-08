@@ -6,7 +6,7 @@ on:
       - '*'
     branches_ignore:
       - master
-      - dev
+      - dev**
 jobs:
   build:
     name: Build
