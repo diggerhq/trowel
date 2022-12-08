@@ -1,7 +1,7 @@
 FROM public.ecr.aws/lambda/python:3.9
 
 # recommended by aws security check
-RUN yum update expat
+RUN yum update -y expat
 
 RUN yum install -y yum-utils
 RUN yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
