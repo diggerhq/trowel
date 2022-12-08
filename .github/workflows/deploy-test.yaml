@@ -2,7 +2,11 @@ name: Test account deployment
 
 on:
   push:
-    branches: [master]
+    branches:
+      - '*'
+    branches_ignore:
+      - master
+      - dev
 jobs:
   build:
     name: Build

@@ -2,7 +2,7 @@ name: Dev account deployment
 
 on:
   push:
-    branches: [master]
+    branches: [dev]
 jobs:
   build:
     name: Build
