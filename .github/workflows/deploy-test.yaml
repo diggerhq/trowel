@@ -2,8 +2,6 @@ name: Test account deployment
 
 on:
   push:
-    branches:
-      - '*'
     branches_ignore:
       - master
       - dev**
