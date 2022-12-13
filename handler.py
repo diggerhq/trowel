@@ -16,8 +16,9 @@ def generate_terraform(event, context):
                 result = generate_terraform_project(tmp_dir_name, event)
                 return result
     except LambdaError as le:
+        print(f"generate_terraform: lambda error: {le}")
         return {"statusCode": 500, "error": le.message}
     except Exception as e:
-        print(traceback.format_exc())
+        print(f"generate_terraform: exception: {traceback.format_exc()}")
         return {"statusCode": 500, "error": str(e)}
     return {"statusCode": 200, "body": json.dumps({})}
