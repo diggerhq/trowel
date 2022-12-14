@@ -614,7 +614,7 @@ def generate_terraform_project(terraform_project_dir, config):
             print("encoded zip len:", len(encoded_zip))
             print("encoded_zip:", encoded_zip)
             return {
-                "headers": {"Content-Type": "application/zip"},
+                # "headers": {"Content-Type": "application/zip"},
                 "statusCode": 200,
                 "body": encoded_zip,
                 "isBase64Encoded": True,
