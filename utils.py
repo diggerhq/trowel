@@ -615,6 +615,6 @@ def generate_terraform_project(terraform_project_dir, config):
             return {
                 "headers": {"Content-Type": "application/zip"},
                 "statusCode": 200,
-                "body": encoded_zip,
+                "body": "xxxxxx",
                 "isBase64Encoded": True,
             }
