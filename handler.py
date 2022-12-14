@@ -12,7 +12,7 @@ def generate_terraform(event, context):
        
     # check if event is coming from direct invocation or url invocation
     if "body" in event:
-        payload = json.loads(event["body"])["request"])
+        payload = json.loads(event["body"])["request"]
     else:
         payload = event
         
