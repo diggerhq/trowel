@@ -15,6 +15,19 @@ class ResourceTypeEnum(Enum):
     redis = "redis"
 
 
+class LaunchTypeEnum(Enum):
+    fargate = "FARGATE"
+
+
+class RdsEngineEnum(Enum):
+    postgres = "postgres"
+
+
+class EnvironmentVariable(BaseModel):
+    key: str
+    value: str
+
+
 class Module(BaseModel):
     module_name: str
     target: str
@@ -30,9 +43,34 @@ class Module(BaseModel):
 
     # container
     aws_app_identifier: Optional[str]
+    provider: Optional[str]
+    region: Optional[str]
+    task_memory: Optional[int]
+    task_cpu: Optional[int]
+    container_port: Optional[int]
+    load_balancer: Optional[bool]
+    internal: Optional[bool]
+    health_check: Optional[str]
+    health_check_matcher: Optional[str]
+    monitoring_enabled: Optional[bool]
+    lb_monitoring_enabled: Optional[bool]
+    launch_type: Optional[LaunchTypeEnum]
+    environment_variables: Optional[List[EnvironmentVariable]]
+    secret_keys: Optional[List[str]]
+    secrets_mapping: Optional[List[str]]
+    env_mapping: Optional[List[str]]
+    #secrets: Optional[List[str]]
 
     # resource
     resource_type: Optional[ResourceTypeEnum]
+    id: Optional[str]
+    rds_engine: Optional[RdsEngineEnum]
+    rds_engine_version: Optional[str]
+    database_name: Optional[str]
+    database_username: Optional[str]
+    rds_instance_class: Optional[str]
+    connection_schema: Optional[str]
+    date_created: Optional[str]
 
     @root_validator
     def module_has_mandatory_data(cls, values):
@@ -64,14 +102,17 @@ class MySchema(BaseModel):
     for_local_run: bool
     aws_region: str
     environment_id: str
+    modules: List[Module]
+
     secret_keys: Optional[List] = []
     hosted_zone_name: Optional[str]
-    modules: List[Module]
+    created: Optional[int]
 
 
 if __name__ == "__main__":
     MySchema.parse_file("digger.json")
     MySchema.parse_file("hubii.json")
+    MySchema.parse_file("test.json")
 
     payload = {
         "target": "diggerhq/tf-module-bundler@master",

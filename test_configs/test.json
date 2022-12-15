@@ -1,0 +1,40 @@
+{
+  "target": "diggerhq/tf-module-bundler@master",
+  "for_local_run": true,
+  "aws_region": "us-east-1",
+  "environment_id": "test-env-id",
+  "modules": [
+    {
+      "module_name": "network-env-test-1",
+      "name": "network-env-test-1",
+      "type": "vpc",
+      "target": "diggerhq/target-network-module@main",
+      "network_name": "env-test-1",
+      "enable_vpc_endpoints": true,
+      "enable_dns_hostnames": false,
+      "enable_dns_support": true,
+      "one_nat_gateway_per_az": true,
+      "enable_nat_gateway": true
+    },
+    {
+      "module_name": "99d98a74-3f4d-438a-983f-c1dea5a90cc8",
+      "name": "99d98a74-3f4d-438a-983f-c1dea5a90cc8",
+      "type": "container",
+      "target": "diggerhq/target-ecs-module@dev",
+      "provider": "AWS",
+      "region": "us-west-1",
+      "task_memory": 512,
+      "task_cpu": 256,
+      "container_port": 8000,
+      "load_balancer": true,
+      "internal": false,
+      "health_check": "/",
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "test",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true
+    }
+  ],
+  "created": 1671038906711
+}
