@@ -611,11 +611,7 @@ def generate_terraform_project(terraform_project_dir, config):
         with open(f"{tmp_dir_name}/{name}.{extension}", "rb") as terraform_zip:
             zip = terraform_zip.read()
             encoded_zip = base64.encodebytes(zip)
-            print("encoded zip len:", len(encoded_zip))
-            print("encoded_zip:", encoded_zip)
             return {
-                # "headers": {"Content-Type": "application/zip"},
                 "statusCode": 200,
                 "body": encoded_zip,
-                # "isBase64Encoded": True,
             }
