@@ -1,2 +1,4 @@
 Jinja2
 requests
+pytest
+pydantic

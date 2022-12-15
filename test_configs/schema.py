@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, ValidationError, root_validator
 
 
 class ModuleTypeEnum(Enum):
@@ -59,7 +59,9 @@ class Module(BaseModel):
     secret_keys: Optional[List[str]]
     secrets_mapping: Optional[List[str]]
     env_mapping: Optional[List[str]]
-    #secrets: Optional[List[str]]
+    secrets: Optional[List[str]]
+    task_cpu: Optional[int]
+    task_mem: Optional[int]
 
     # resource
     resource_type: Optional[ResourceTypeEnum]
@@ -81,9 +83,9 @@ class Module(BaseModel):
         module_name = values["module_name"]
 
         for required_field in cls.Config.required_by_module[module_type]:
-            if required_field not in values:
+            if values[required_field] is None:
                 raise ValueError(
-                    f"{required_field} is mandatory for {module_type} module. Check {module_name}"
+                    f"Missing mandatory {required_field} in {module_name} module"
                 )
 
         return values
@@ -97,7 +99,7 @@ class Module(BaseModel):
         }
 
 
-class MySchema(BaseModel):
+class LambdaPayload(BaseModel):
     target: str
     for_local_run: bool
     aws_region: str
@@ -110,9 +112,9 @@ class MySchema(BaseModel):
 
 
 if __name__ == "__main__":
-    MySchema.parse_file("digger.json")
-    MySchema.parse_file("hubii.json")
-    MySchema.parse_file("test.json")
+    LambdaPayload.parse_file("digger.json")
+    LambdaPayload.parse_file("hubii.json")
+    LambdaPayload.parse_file("test.json")
 
     payload = {
         "target": "diggerhq/tf-module-bundler@master",
@@ -142,4 +144,8 @@ if __name__ == "__main__":
         ],
     }
 
-    MySchema.parse_obj(payload)
+    try:
+        LambdaPayload.parse_obj(payload)
+    except ValidationError as err:
+        error_str = err.json()
+        print(type(error_str), error_str)
