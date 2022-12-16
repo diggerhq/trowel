@@ -116,6 +116,8 @@ def validate_payload(payload, cls):
         cls.parse_obj(payload)
     except ValidationError as err:
         raise PayloadValidationException(json.dumps(json.loads(err.json())))
+    except ValueError as err:
+        raise PayloadValidationException(str(err))
 
 
 if __name__ == "__main__":
