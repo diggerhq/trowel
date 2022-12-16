@@ -442,6 +442,7 @@ def generate_terraform_project(terraform_project_dir, config):
             ecs_security_groups_list.append(
                 f"module.{m['name']}.ecs_task_security_group_id"
             )
+            
             ecs_terraform_dir = f"{terraform_dir}/{m['name']}"
             repo, branch = parse_module_target(m["target"])
             repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
