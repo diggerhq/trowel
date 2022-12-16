@@ -14,12 +14,14 @@ RUN terraform -v
 
 COPY *.py ${LAMBDA_TASK_ROOT}/
 COPY *.tf ${LAMBDA_TASK_ROOT}/
+COPY pyproject.toml ${LAMBDA_TASK_ROOT}/
 COPY staticfiles ${LAMBDA_TASK_ROOT}/staticfiles
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 RUN pip install --upgrade pip
-RUN pip3 install -r requirements.txt
+RUN pip install poetry
+RUN poetry config virtualenvs.create false --local
+RUN poetry install
 
 RUN mkdir ~/.ssh
 RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
