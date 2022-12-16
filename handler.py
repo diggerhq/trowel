@@ -2,7 +2,10 @@ import json
 import tempfile
 import traceback
 
+from pydantic import ValidationError
+
 from exceptions import PayloadValidationException, LambdaError
+from payloads import PayloadGenerateTerraform
 from utils import generate_terraform_project
 
 
@@ -15,6 +18,15 @@ def generate_terraform(event, context):
         payload = json.loads(event["body"])
     else:
         payload = event
+
+    try:
+        PayloadGenerateTerraform.parse_obj(payload)
+    except ValidationError as err:
+        print(f"generate_terraform: invalid payload: {err}")
+        return {"statusCode": 500, "error": json.dumps(json.loads(err.json()))}
+    except Exception as err:
+        print(f"generate_terraform: failed to validate payload: {err}")
+        return {"statusCode": 500, "error": str(err)}
         
     try:
         if use_temp_dir:

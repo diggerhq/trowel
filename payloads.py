@@ -98,7 +98,7 @@ class Block(BaseModel):
         }
 
 
-class LambdaPayload(BaseModel):
+class PayloadGenerateTerraform(BaseModel):
     target: str
     for_local_run: Optional[bool]
     aws_region: str
@@ -111,9 +111,9 @@ class LambdaPayload(BaseModel):
 
 
 if __name__ == "__main__":
-    LambdaPayload.parse_file("digger.json")
-    LambdaPayload.parse_file("hubii.json")
-    LambdaPayload.parse_file("test.json")
+    PayloadGenerateTerraform.parse_file("digger.json")
+    PayloadGenerateTerraform.parse_file("hubii.json")
+    PayloadGenerateTerraform.parse_file("test.json")
 
     payload = {
         "target": "diggerhq/tf-module-bundler@master",
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     }
 
     try:
-        LambdaPayload.parse_obj(payload)
+        PayloadGenerateTerraform.parse_obj(payload)
     except ValidationError as err:
         error_str = err.json()
         print(type(error_str), error_str)
