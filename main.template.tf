@@ -22,13 +22,19 @@ provider "aws" {
       ecs_service_name = "{{module.aws_app_identifier}}"
       alb_subnet_ids = {{module.alb_subnet_ids}}
       ecs_subnet_ids = {{module.ecs_subnet_ids}}
-      container_port = {{module.container_port}}
 
+      {% if module.enable_https_listener is defined and module.enable_https_listener and module.subdomain_name is defined %}
+        lb_ssl_certificate_arn=aws_acm_certificate.{{ module.module_name }}_acm_certificate.arn
+      {% endif %}
+
+      {{ "container_port=" + module.container_port | lower if module.container_port is defined else '' }}
       {{ "task_cpu=" + module.task_cpu | lower if module.task_cpu is defined else '' }}
       {{ "task_memory=" + module.task_memory | lower if module.task_memory is defined else '' }}
       {{ "internal=" + module.internal | lower if module.internal is defined else '' }}
       {{ 'environment_variables=' + module.environment_variables if module.environment_variables is defined  else '' }}
-      {{ 'secret_keys=' + module.secret_keys if module.secret_keys is defined  else '' }}
+      {{ 'secrets=local.secrets' if module.secrets is defined  else '' }}
+
+      {{ "datadog_key_ssm_arn=aws_ssm_parameter.datadog_key.arn" if module.datadog_enabled is defined else '' }}
 
       region = "{{ aws_region }}"
       tags = {
@@ -109,10 +115,5 @@ provider "aws" {
   {% endif %}
 {% endfor %}
 
-{% for module in modules %}
-  output "{{ module.module_name}}" {
-    value = module.{{ module.module_name}}
-  }
-{% endfor %}
 
 
