@@ -2,16 +2,16 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from payloads import LambdaPayload
+from payloads import PayloadGenerateTerraform
 
 
-class TestLambdaPayloads:
+class TestPayloadGenerateTerraforms:
     def test_empty_payload(self):
         with pytest.raises(ValidationError):
-            LambdaPayload.parse_obj({})
+            PayloadGenerateTerraform.parse_obj({})
 
     def test_success(self):
-        assert LambdaPayload.parse_obj(
+        assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
@@ -37,7 +37,7 @@ class TestLambdaPayloads:
         del payload[missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
-            LambdaPayload.parse_obj(payload)
+            PayloadGenerateTerraform.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
@@ -48,7 +48,7 @@ class TestLambdaPayloads:
         ]
 
     def test_module_vpc(self):
-        assert LambdaPayload.parse_obj(
+        assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
@@ -65,7 +65,7 @@ class TestLambdaPayloads:
         )
 
     def test_module_container(self):
-        assert LambdaPayload.parse_obj(
+        assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
@@ -83,7 +83,7 @@ class TestLambdaPayloads:
         )
 
     def test_module_resource(self):
-        assert LambdaPayload.parse_obj(
+        assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
@@ -120,7 +120,7 @@ class TestLambdaPayloads:
         del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
-            LambdaPayload.parse_obj(payload)
+            PayloadGenerateTerraform.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
@@ -150,7 +150,7 @@ class TestLambdaPayloads:
         del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
-            LambdaPayload.parse_obj(payload)
+            PayloadGenerateTerraform.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
@@ -181,7 +181,7 @@ class TestLambdaPayloads:
         del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
-            LambdaPayload.parse_obj(payload)
+            PayloadGenerateTerraform.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
