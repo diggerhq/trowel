@@ -413,9 +413,10 @@ def generate_terraform_project(terraform_project_dir, config):
     debug = False
     if "debug" in config and config["debug"]:
         debug = True
-    if "modules" not in config:
+
+    if "blocks" not in config:
         raise PayloadValidationException(
-            '"modules" key is missing in provided configuration.'
+            '"blocks" key is missing in provided configuration.'
         )
     if "environment_id" not in config:
         raise PayloadValidationException(
@@ -436,13 +437,13 @@ def generate_terraform_project(terraform_project_dir, config):
         if not 'secret_keys' in config or not "DATADOG_KEY" in config['secret_keys']:
             raise ValidationError("If DataDog integration enabled, DATADOG_KEY secret required.")
 
-    updated_config = {"modules": []}
+    updated_config = {"blocks": []}
 
-    for m in config["modules"]:
+    for m in config["blocks"]:
         if m["type"] == "vpc":
-            network_module_name = m["module_name"]
+            network_module_name = m["name"]
             repo, branch = parse_module_target(m["target"])
-            vpc_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            vpc_terraform_dir = f"{terraform_dir}/{m['name']}"
             terraform_options = m  # todo: move to a separate dict
 
             process_vpc_module(
@@ -452,14 +453,15 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["modules"].append(m)
+            updated_config["blocks"].append(m)
 
-    for m in config["modules"]:
+    for m in config["blocks"]:
         if m["type"] == "container":
             ecs_security_groups_list.append(
-                f"module.{m['module_name']}.ecs_task_security_group_id"
+                f"module.{m['name']}.ecs_task_security_group_id"
             )
-            ecs_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            
+            ecs_terraform_dir = f"{terraform_dir}/{m['name']}"
             repo, branch = parse_module_target(m["target"])
             #repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
             #branch = 'dev'
@@ -500,12 +502,11 @@ def generate_terraform_project(terraform_project_dir, config):
                 datadog_enabled=datadog_enabled
             )
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
-            updated_config["modules"].append(m)
+            updated_config["blocks"].append(m)
 
     ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
     print(f"ecs_security_groups: {ecs_security_groups}")
-
-    for m in config["modules"]:
+    for m in config["blocks"]:
         if m["type"] == "resource":
             repo, branch = parse_module_target(m["target"])
 
@@ -532,7 +533,7 @@ def generate_terraform_project(terraform_project_dir, config):
                 m["private_subnets_ids"] = private_subnets_ids
 
 
-            resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             m["security_groups"] = ecs_security_groups
 
 
@@ -545,12 +546,12 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["modules"].append(m)
+            updated_config["blocks"].append(m)
 
-    for m in config["modules"]:
+    for m in config["blocks"]:
         if m["type"] == "api-gateway":
             repo, branch = parse_module_target(m["target"])
-            resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             subnets = f"module.{network_module_name}.public_subnets"
             m['subnets'] = subnets
             terraform_options = m  # todo: move to a separate dict
@@ -562,11 +563,11 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["modules"].append(m)
+            updated_config["blocks"].append(m)
 
         if m["type"] == "sqs":
             repo, branch = parse_module_target(m["target"])
-            resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             terraform_options = m  # todo: move to a separate dict
 
             process_sqs_module(
@@ -576,10 +577,10 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["modules"].append(m)
+            updated_config["blocks"].append(m)
         if m["type"] == "s3":
             repo, branch = parse_module_target(m["target"])
-            resource_terraform_dir = f"{terraform_dir}/{m['module_name']}"
+            resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             terraform_options = m  # todo: move to a separate dict
             process_s3_module(
                 dest_dir=resource_terraform_dir,
@@ -588,7 +589,7 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["modules"].append(m)
+            updated_config["blocks"].append(m)
 
     # pprint(f"updated_config: {updated_config}")
     main_tf_options = config
@@ -629,10 +630,7 @@ def generate_terraform_project(terraform_project_dir, config):
         with open(f"{tmp_dir_name}/{name}.{extension}", "rb") as terraform_zip:
             zip = terraform_zip.read()
             encoded_zip = base64.encodebytes(zip)
-
             return {
-                "headers": {"Content-Type": "application/zip"},
                 "statusCode": 200,
                 "body": encoded_zip,
-                "isBase64Encoded": True,
             }

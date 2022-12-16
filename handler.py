@@ -12,7 +12,7 @@ def generate_terraform(event, context):
        
     # check if event is coming from direct invocation or url invocation
     if "body" in event:
-        payload = json.loads(event["body"])["request"])
+        payload = json.loads(event["body"])
     else:
         payload = event
         
@@ -22,6 +22,7 @@ def generate_terraform(event, context):
                 result = generate_terraform_project(tmp_dir_name, payload)
                 return result
     except LambdaError as le:
+        print(traceback.format_exc())
         print(f"generate_terraform: lambda error: {le}")
         return {"statusCode": 500, "error": le.message}
     except Exception as e:
