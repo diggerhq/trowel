@@ -1,0 +1,381 @@
+{
+  "target": "diggerhq/tf-module-bundler@master",
+  "for_local_run": true,
+  "aws_region": "us-east-1",
+  "environment_id": "test-env-id",
+  "modules": [
+    {
+      "module_name": "network-env-test-1",
+      "target": "diggerhq/target-network-module@main",
+      "type": "vpc",
+      "network_name": "env-test-1",
+      "enable_vpc_endpoints": true,
+      "enable_dns_hostnames": false,
+      "enable_dns_support": true,
+      "one_nat_gateway_per_az": true,
+      "enable_nat_gateway": true
+    },
+    {
+      "module_name": "core-service-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "core-service",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        }
+      ],
+      "secret_keys": [
+        "DB_PASSWORD"
+      ],
+      "secrets_mapping": [
+        "DATABASE_URL:database_url_ssm_arn"
+      ],
+      "env_mapping": [
+        "NEXT_PUBLIC_URL:tf_output.hub-next-app.lb_dns"
+      ]
+    },
+    {
+      "module_name": "customer-service-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "customer-service",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        }
+      ],
+      "secret_keys": [
+        "DB_PASSWORD"
+      ]
+    },
+    {
+      "module_name": "store-router-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "store-router",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        }
+      ],
+      "secret_keys": [
+        "DB_PASSWORD"
+      ]
+    },
+    {
+      "module_name": "supplier-next-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "task_cpu": 1024,
+      "task_memory": 2048,
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 3000,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "supplier-next",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "NEXT_PUBLIC_SUPPLIER_SERVICE",
+          "value": "http://supplier-service-1585222236.us-east-1.elb.amazonaws.com"
+        }
+      ],
+      "secret_keys": []
+    },
+    {
+      "module_name": "hub-next-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 3000,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "hub-next",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "NEXT_PUBLIC_SUPPLIER_SERVICE",
+          "value": "http://supplier-service-1585222236.us-east-1.elb.amazonaws.com"
+        }
+      ],
+      "secret_keys": []
+    },
+    {
+      "module_name": "godmode-react-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "task_cpu": 2048,
+      "task_memory": 4096,
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 3000,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "godmode-react",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "NEXT_PUBLIC_CORE_SERVICE",
+          "value": "http://core-service-1035014459.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "NEXT_PUBLIC_CORE_SERVICE_TOKEN",
+          "value": "token"
+        },
+        {
+          "key": "NEXT_PUBLIC_CUSTOMER_SERVICE",
+          "value": "http://customer-service-179273392.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "NEXT_PUBLIC_CUSTOMER_SERVICE_TOKEN",
+          "value": "token"
+        },
+        {
+          "key": "NEXT_PUBLIC_ORDER_SERVICE",
+          "value": "http://order-service-302692539.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "NEXT_PUBLIC_ORDER_SERVICE_TOKEN",
+          "value": "token"
+        },
+        {
+          "key": "NEXT_PUBLIC_PRODUCT_SERVICE",
+          "value": "product-service-2099198766.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "NEXT_PUBLIC_PRODUCT_SERVICE_TOKEN",
+          "value": "token"
+        },
+        {
+          "key": "NEXT_PUBLIC_SUPPLIER_SERVICE",
+          "value": "supplier-service-1585222236.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "NEXT_PUBLIC_SUPPLIER_SERVICE_TOKEN",
+          "value": "token"
+        }
+      ],
+      "secret_keys": []
+    },
+    {
+      "module_name": "store-react-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 3000,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "store-react",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "NEXT_PUBLIC_STORE_ROUTER",
+          "value": "http://store-router-1699909583.us-east-1.elb.amazonaws.com"
+        }
+      ],
+      "secret_keys": []
+    },
+    {
+      "module_name": "order-service-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "order-service",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        }
+      ],
+      "secret_keys": [
+        "DB_PASSWORD"
+      ]
+    },
+    {
+      "module_name": "product-service-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "product-service",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        }
+      ],
+      "secret_keys": [
+        "DB_PASSWORD"
+      ]
+    },
+    {
+      "module_name": "supplier-service-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "supplier-service",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        }
+      ],
+      "secret_keys": [
+        "DB_PASSWORD"
+      ]
+    },
+    {
+      "module_name": "hub-service-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "hub-service",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        }
+      ],
+      "secret_keys": [
+        "DB_PASSWORD"
+      ]
+    },
+    {
+      "id": "db_id_hubii",
+      "rds_engine": "postgres",
+      "rds_engine_version": "14.0",
+      "database_name": "hubii",
+      "database_username": "hubii",
+      "rds_instance_class": "db.t3.micro",
+      "connection_schema": "postgres",
+      "date_created": "2022-11-17T11:53:22-0600",
+      "module_name": "hubii-db",
+      "target": "diggerhq/target-resource-module@main",
+      "type": "resource",
+      "aws_app_identifier": "hubii-db",
+      "resource_type": "database"
+    }
+  ]
+}

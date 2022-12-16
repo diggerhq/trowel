@@ -9,7 +9,7 @@ from urllib.parse import quote
 from jinja2 import Template
 from jinja2.filters import FILTERS
 
-from exceptions import PayloadValidationException, GitHubError, TerraformFormatError
+from exceptions import PayloadValidationException, GitHubError, TerraformFormatError, ValidationError
 
 
 def add_debug_info(dest_dir, terraform_options):
@@ -68,7 +68,7 @@ def process_overrides(repo_link, repo_username, repo_password, dest_dir):
 
 
 def generate_ecs_task_execution_policy(
-    path, s3_bucket_arn_list, ssm_list, sqs_arn_list
+    path, s3_bucket_arn_list, ssm_list, sqs_arn_list, datadog_enabled
 ):
     result = {
         "Version": "2012-10-17",
@@ -112,6 +112,17 @@ def generate_ecs_task_execution_policy(
             "Resource": sqs_arn_list,
         }
         result["Statement"].append(sqs_statement)
+
+    if datadog_enabled:
+        datadog_statement = {
+            "Sid": "DataDogFireHose",
+            "Effect": "Allow",
+            "Action": "firehose:PutRecordBatch",
+            "Resource": [
+                "*"
+            ],
+        }
+        result["Statement"].append(datadog_statement)
 
     s = json.dumps(
         result,
@@ -230,7 +241,6 @@ def format_generated_terraform(terraform_dir):
 
 
 def convert_to_hcl(t):
-    print(f"convert_to_hcl: {str(t)}")
     return str(t).replace("'", '"')
 
 
@@ -295,9 +305,7 @@ def process_terraform_overrides(dest_dir, override_repo_name, override_repo_user
 
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
     recreate_dir(dest_dir)
-
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
-
     if debug:
         add_debug_info(dest_dir, terraform_options)
 
@@ -307,12 +315,13 @@ def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
 
     if "environment_variables" in terraform_options:
         terraform_options["environment_variables"] = convert_to_hcl(
-            terraform_options["environment_variables"]
+            json.dumps(terraform_options["environment_variables"], indent=2)
         )
     if "secret_keys" in terraform_options:
-        terraform_options["secret_keys"] = convert_to_hcl(
-            terraform_options["secret_keys"]
-        )
+        terraform_options["secrets"] = "local.secrets"
+        #    convert_to_hcl(
+        #    json.dumps(terraform_options["secret_keys"], indent=2)
+        #)
 
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
 
@@ -358,11 +367,14 @@ def process_resource_module(
         add_debug_info(dest_dir, terraform_options)
 
 
-def process_main_tf(dest_dir, terraform_options, main_template_file_path, debug=False):
-    jinja_template = main_template_file_path
-    jinja_result = f"{dest_dir}/main.tf"
-    render_jinja_template(terraform_options, jinja_template, jinja_result, False)
-    format_generated_terraform(dest_dir)
+def process_tf_templates(dest_dir, terraform_options, debug=False):
+    templates = ['main.template.tf', 'ssm.template.tf', 'dns.template.tf', 'outputs.template.tf',]
+    for t in templates:
+        jinja_template = t
+        r = t.replace('.template', '')
+        jinja_result = f"{dest_dir}/{r}"
+        render_jinja_template(terraform_options, jinja_template, jinja_result, False)
+        format_generated_terraform(dest_dir)
 
     if debug:
         add_debug_info(dest_dir, terraform_options)
@@ -418,6 +430,12 @@ def generate_terraform_project(terraform_project_dir, config):
     network_module_name = None
     ecs_security_groups_list = []
 
+    datadog_enabled = False
+    if 'datadog_enabled' in config and config['datadog_enabled']:
+        datadog_enabled = True
+        if not 'secret_keys' in config or not "DATADOG_KEY" in config['secret_keys']:
+            raise ValidationError("If DataDog integration enabled, DATADOG_KEY secret required.")
+
     updated_config = {"modules": []}
 
     for m in config["modules"]:
@@ -443,8 +461,8 @@ def generate_terraform_project(terraform_project_dir, config):
             )
             ecs_terraform_dir = f"{terraform_dir}/{m['module_name']}"
             repo, branch = parse_module_target(m["target"])
-            repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
-            branch = 'dev'
+            #repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
+            #branch = 'dev'
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
             private_subnets_ids = f"module.{network_module_name}.private_subnets"
 
@@ -479,13 +497,14 @@ def generate_terraform_project(terraform_project_dir, config):
                 s3_bucket_arn_list=[],
                 ssm_list=["*"],
                 sqs_arn_list=[],
+                datadog_enabled=datadog_enabled
             )
-
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
             updated_config["modules"].append(m)
 
     ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
     print(f"ecs_security_groups: {ecs_security_groups}")
+
     for m in config["modules"]:
         if m["type"] == "resource":
             repo, branch = parse_module_target(m["target"])
@@ -574,10 +593,9 @@ def generate_terraform_project(terraform_project_dir, config):
     # pprint(f"updated_config: {updated_config}")
     main_tf_options = config
     main_tf_options["network_module_name"] = network_module_name
-    process_main_tf(
+    process_tf_templates(
         dest_dir=terraform_dir,
         terraform_options=main_tf_options,
-        main_template_file_path="./main.template.tf",
         debug=debug,
     )
 
