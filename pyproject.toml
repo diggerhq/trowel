@@ -8,6 +8,7 @@ authors = ["Digger <digger@digger.dev>"]
 python = "^3.9"
 Jinja2 = "^3.1.2"
 requests = "^2.28.1"
+pydantic = "^1.10.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
