@@ -34,7 +34,6 @@ class Block(BaseModel):
     type: BlockTypeEnum
 
     # vpc
-    network_name: Optional[str]
     enable_vpc_endpoints: Optional[bool]
     enable_dns_hostnames: Optional[bool]
     enable_dns_support: Optional[bool]
@@ -93,7 +92,7 @@ class Block(BaseModel):
     class Config:
         # Declare which fields are mandatory for given module type
         required_by_module = {
-            BlockTypeEnum.vpc: ("network_name",),
+            BlockTypeEnum.vpc: (),
             BlockTypeEnum.container: ("aws_app_identifier",),
             BlockTypeEnum.resource: ("resource_type", "aws_app_identifier",),
         }
@@ -126,7 +125,6 @@ if __name__ == "__main__":
                 "name": "network-env-test-1",
                 "target": "diggerhq/target-network-module@main",
                 "type": "vpc",
-                "network_name": "env-test-1",
             },
             {
                 "name": "core-service-app",

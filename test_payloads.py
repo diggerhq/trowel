@@ -59,7 +59,6 @@ class TestLambdaPayloads:
                         "name": "network-env-test-1",
                         "target": "diggerhq/target-network-module@main",
                         "type": "vpc",
-                        "network_name": "env-test-1",
                     },
                 ],
             }
@@ -102,7 +101,7 @@ class TestLambdaPayloads:
             }
         )
 
-    @pytest.mark.parametrize("missing_field", ("network_name",))
+    @pytest.mark.parametrize("missing_field", ())
     def test_missing_mandatory_field_in_vpc(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
@@ -114,7 +113,6 @@ class TestLambdaPayloads:
                     "name": "network-env-test-1",
                     "target": "diggerhq/target-network-module@main",
                     "type": "vpc",
-                    "network_name": "env-test-1",
                 },
             ],
         }
