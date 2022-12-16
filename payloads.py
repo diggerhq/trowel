@@ -4,7 +4,7 @@ from typing import List, Optional
 from pydantic import BaseModel, ValidationError, root_validator
 
 
-class ModuleTypeEnum(Enum):
+class BlockTypeEnum(Enum):
     vpc = "vpc"
     container = "container"
     resource = "resource"
@@ -28,10 +28,10 @@ class EnvironmentVariable(BaseModel):
     value: str
 
 
-class Module(BaseModel):
-    module_name: str
+class Block(BaseModel):
+    name: str
     target: str
-    type: ModuleTypeEnum
+    type: BlockTypeEnum
 
     # vpc
     network_name: Optional[str]
@@ -80,12 +80,12 @@ class Module(BaseModel):
             return values
 
         module_type = values["type"]
-        module_name = values["module_name"]
+        name = values["name"]
 
         for required_field in cls.Config.required_by_module[module_type]:
             if values[required_field] is None:
                 raise ValueError(
-                    f"Missing mandatory {required_field} in {module_name} module"
+                    f"Missing mandatory {required_field} in {name} module"
                 )
 
         return values
@@ -93,9 +93,9 @@ class Module(BaseModel):
     class Config:
         # Declare which fields are mandatory for given module type
         required_by_module = {
-            ModuleTypeEnum.vpc: ("network_name",),
-            ModuleTypeEnum.container: ("aws_app_identifier",),
-            ModuleTypeEnum.resource: ("resource_type", "aws_app_identifier",),
+            BlockTypeEnum.vpc: ("network_name",),
+            BlockTypeEnum.container: ("aws_app_identifier",),
+            BlockTypeEnum.resource: ("resource_type", "aws_app_identifier",),
         }
 
 
@@ -104,7 +104,7 @@ class LambdaPayload(BaseModel):
     for_local_run: bool
     aws_region: str
     environment_id: str
-    modules: List[Module]
+    blocks: List[Block]
 
     secret_keys: Optional[List] = []
     hosted_zone_name: Optional[str]
@@ -121,21 +121,21 @@ if __name__ == "__main__":
         "for_local_run": True,
         "aws_region": "us-east-1",
         "environment_id": "test-env-id",
-        "modules": [
+        "blocks": [
             {
-                "module_name": "network-env-test-1",
+                "name": "network-env-test-1",
                 "target": "diggerhq/target-network-module@main",
                 "type": "vpc",
                 "network_name": "env-test-1",
             },
             {
-                "module_name": "core-service-app",
+                "name": "core-service-app",
                 "target": "diggerhq/target-ecs-module@dev",
                 "type": "container",
                 "aws_app_identifier": "core-service",
             },
             {
-                "module_name": "hubii-db",
+                "name": "hubii-db",
                 "target": "diggerhq/target-resource-module@main",
                 "type": "resource",
                 "aws_app_identifier": "hubii-db",

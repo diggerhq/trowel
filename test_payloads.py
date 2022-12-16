@@ -17,13 +17,13 @@ class TestLambdaPayloads:
                 "for_local_run": True,
                 "aws_region": "us-east-1",
                 "environment_id": "test-env-id",
-                "modules": [],
+                "blocks": [],
             }
         )
 
     @pytest.mark.parametrize(
         "missing_field",
-        ["target", "for_local_run", "aws_region", "environment_id", "modules"],
+        ["target", "for_local_run", "aws_region", "environment_id", "blocks"],
     )
     def test_missing_root_level_field(self, missing_field):
         payload = {
@@ -31,7 +31,7 @@ class TestLambdaPayloads:
             "for_local_run": True,
             "aws_region": "us-east-1",
             "environment_id": "test-env-id",
-            "modules": [],
+            "blocks": [],
         }
 
         del payload[missing_field]
@@ -54,9 +54,9 @@ class TestLambdaPayloads:
                 "for_local_run": True,
                 "aws_region": "us-east-1",
                 "environment_id": "test-env-id",
-                "modules": [
+                "blocks": [
                     {
-                        "module_name": "network-env-test-1",
+                        "name": "network-env-test-1",
                         "target": "diggerhq/target-network-module@main",
                         "type": "vpc",
                         "network_name": "env-test-1",
@@ -72,9 +72,9 @@ class TestLambdaPayloads:
                 "for_local_run": True,
                 "aws_region": "us-east-1",
                 "environment_id": "test-env-id",
-                "modules": [
+                "blocks": [
                     {
-                        "module_name": "core-service-app",
+                        "name": "core-service-app",
                         "target": "diggerhq/target-ecs-module@dev",
                         "type": "container",
                         "aws_app_identifier": "core-service",
@@ -90,9 +90,9 @@ class TestLambdaPayloads:
                 "for_local_run": True,
                 "aws_region": "us-east-1",
                 "environment_id": "test-env-id",
-                "modules": [
+                "blocks": [
                     {
-                        "module_name": "hubii-db",
+                        "name": "hubii-db",
                         "target": "diggerhq/target-resource-module@main",
                         "type": "resource",
                         "aws_app_identifier": "hubii-db",
@@ -109,9 +109,9 @@ class TestLambdaPayloads:
             "for_local_run": True,
             "aws_region": "us-east-1",
             "environment_id": "test-env-id",
-            "modules": [
+            "blocks": [
                 {
-                    "module_name": "network-env-test-1",
+                    "name": "network-env-test-1",
                     "target": "diggerhq/target-network-module@main",
                     "type": "vpc",
                     "network_name": "env-test-1",
@@ -119,14 +119,14 @@ class TestLambdaPayloads:
             ],
         }
 
-        del payload["modules"][0][missing_field]
+        del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
             LambdaPayload.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
-                "loc": ["modules", 0, "__root__"],
+                "loc": ["blocks", 0, "__root__"],
                 "msg": f"Missing mandatory {missing_field} in network-env-test-1 module",
                 "type": "value_error",
             }
@@ -139,9 +139,9 @@ class TestLambdaPayloads:
             "for_local_run": True,
             "aws_region": "us-east-1",
             "environment_id": "test-env-id",
-            "modules": [
+            "blocks": [
                 {
-                    "module_name": "core-service-app",
+                    "name": "core-service-app",
                     "target": "diggerhq/target-ecs-module@dev",
                     "type": "container",
                     "aws_app_identifier": "core-service",
@@ -149,14 +149,14 @@ class TestLambdaPayloads:
             ],
         }
 
-        del payload["modules"][0][missing_field]
+        del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
             LambdaPayload.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
-                "loc": ["modules", 0, "__root__"],
+                "loc": ["blocks", 0, "__root__"],
                 "msg": f"Missing mandatory {missing_field} in core-service-app module",
                 "type": "value_error",
             }
@@ -169,9 +169,9 @@ class TestLambdaPayloads:
             "for_local_run": True,
             "aws_region": "us-east-1",
             "environment_id": "test-env-id",
-            "modules": [
+            "blocks": [
                 {
-                    "module_name": "hubii-db",
+                    "name": "hubii-db",
                     "target": "diggerhq/target-resource-module@main",
                     "type": "resource",
                     "aws_app_identifier": "hubii-db",
@@ -180,14 +180,14 @@ class TestLambdaPayloads:
             ],
         }
 
-        del payload["modules"][0][missing_field]
+        del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
             LambdaPayload.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
-                "loc": ["modules", 0, "__root__"],
+                "loc": ["blocks", 0, "__root__"],
                 "msg": f"Missing mandatory {missing_field} in hubii-db module",
                 "type": "value_error",
             }
