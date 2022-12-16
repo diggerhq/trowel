@@ -23,12 +23,18 @@ provider "aws" {
       alb_subnet_ids = {{module.alb_subnet_ids}}
       ecs_subnet_ids = {{module.ecs_subnet_ids}}
 
+      {% if module.enable_https_listener is defined and module.enable_https_listener and module.subdomain_name is defined %}
+        lb_ssl_certificate_arn=aws_acm_certificate.{{ module.module_name }}_acm_certificate.arn
+      {% endif %}
+
       {{ "container_port=" + module.container_port | lower if module.container_port is defined else '' }}
       {{ "task_cpu=" + module.task_cpu | lower if module.task_cpu is defined else '' }}
       {{ "task_memory=" + module.task_memory | lower if module.task_memory is defined else '' }}
       {{ "internal=" + module.internal | lower if module.internal is defined else '' }}
       {{ 'environment_variables=' + module.environment_variables if module.environment_variables is defined  else '' }}
       {{ 'secrets=local.secrets' if module.secrets is defined  else '' }}
+
+      {{ "datadog_key_ssm_arn=aws_ssm_parameter.datadog_key.arn" if module.datadog_enabled is defined else '' }}
 
       region = "{{ aws_region }}"
       tags = {

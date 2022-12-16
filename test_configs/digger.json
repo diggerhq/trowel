@@ -5,6 +5,7 @@
   "environment_id": "test-env-id",
   "secret_keys": [],
   "hosted_zone_name": "uselemon.cloud",
+  "datadog_enabled": true,
   "modules": [
     {
       "module_name": "digger-vpc",
@@ -24,15 +25,21 @@
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 8080,
       "health_check_matcher": "200-499",
       "launch_type": "FARGATE",
       "aws_app_identifier": "backend-cli",
       "monitoring_enabled": true,
-      "lb_monitoring_enabled": true,
-      "environment_variables": [],
-      "secrets": "[]"
+      "environment_variables": [{
+        "key" : "PORT",
+        "value" : "8080"
+      }],
+      "secrets": "[]",
+      "task_cpu": 1024,
+      "task_memory": 2048,
+      "datadog_enabled": true
     },
     {
       "module_name": "celery-worker",
@@ -45,8 +52,10 @@
       "launch_type": "FARGATE",
       "aws_app_identifier": "celery-worker",
       "monitoring_enabled": true,
-      "lb_monitoring_enabled": true,
-      "environment_variables": [],
+      "environment_variables": [{
+        "key" : "PORT",
+        "value" : "8080"
+      }],
       "secrets": "[]"
     },
     {
@@ -60,8 +69,10 @@
       "launch_type": "FARGATE",
       "aws_app_identifier": "celery-beat",
       "monitoring_enabled": true,
-      "lb_monitoring_enabled": true,
-      "environment_variables": [],
+      "environment_variables": [{
+        "key" : "PORT",
+        "value" : "8080"
+      }],
       "secrets": "[]"
     },
     {
@@ -72,16 +83,16 @@
       "health_check": "/",
       "load_balancer": true,
       "internal": "false",
+      "enable_https_listener": true,
       "container_port": 3000,
       "health_check_matcher": "200-499",
       "launch_type": "FARGATE",
       "aws_app_identifier": "frontend",
       "monitoring_enabled": true,
-      "lb_monitoring_enabled": true,
       "environment_variables": [],
       "secrets": "[]",
       "task_cpu": 1024,
-      "task_mem": 2048
+      "task_memory": 2048
     },
     {
       "id": "digger-db",

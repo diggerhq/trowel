@@ -9,7 +9,7 @@ from urllib.parse import quote
 from jinja2 import Template
 from jinja2.filters import FILTERS
 
-from exceptions import PayloadValidationException, GitHubError, TerraformFormatError
+from exceptions import PayloadValidationException, GitHubError, TerraformFormatError, ValidationError
 
 
 def add_debug_info(dest_dir, terraform_options):
@@ -68,7 +68,7 @@ def process_overrides(repo_link, repo_username, repo_password, dest_dir):
 
 
 def generate_ecs_task_execution_policy(
-    path, s3_bucket_arn_list, ssm_list, sqs_arn_list
+    path, s3_bucket_arn_list, ssm_list, sqs_arn_list, datadog_enabled
 ):
     result = {
         "Version": "2012-10-17",
@@ -112,6 +112,17 @@ def generate_ecs_task_execution_policy(
             "Resource": sqs_arn_list,
         }
         result["Statement"].append(sqs_statement)
+
+    if datadog_enabled:
+        datadog_statement = {
+            "Sid": "DataDogFireHose",
+            "Effect": "Allow",
+            "Action": "firehose:PutRecordBatch",
+            "Resource": [
+                "*"
+            ],
+        }
+        result["Statement"].append(datadog_statement)
 
     s = json.dumps(
         result,
@@ -294,9 +305,7 @@ def process_terraform_overrides(dest_dir, override_repo_name, override_repo_user
 
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
     recreate_dir(dest_dir)
-
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
-
     if debug:
         add_debug_info(dest_dir, terraform_options)
 
@@ -421,6 +430,12 @@ def generate_terraform_project(terraform_project_dir, config):
     network_module_name = None
     ecs_security_groups_list = []
 
+    datadog_enabled = False
+    if 'datadog_enabled' in config and config['datadog_enabled']:
+        datadog_enabled = True
+        if not 'secret_keys' in config or not "DATADOG_KEY" in config['secret_keys']:
+            raise ValidationError("If DataDog integration enabled, DATADOG_KEY secret required.")
+
     updated_config = {"modules": []}
 
     for m in config["modules"]:
@@ -482,8 +497,8 @@ def generate_terraform_project(terraform_project_dir, config):
                 s3_bucket_arn_list=[],
                 ssm_list=["*"],
                 sqs_arn_list=[],
+                datadog_enabled=datadog_enabled
             )
-
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
             updated_config["modules"].append(m)
 

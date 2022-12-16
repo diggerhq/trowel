@@ -19,7 +19,7 @@ locals {
 "value": aws_ssm_parameter.{{s | lower}}.arn
 },
         {% endfor %}
-
   ]
 }
 {% endif %}
+
