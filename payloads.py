@@ -102,7 +102,7 @@ class LambdaPayload(BaseModel):
     target: str
     for_local_run: Optional[bool]
     aws_region: str
-    environment_id: str
+    id: str
     blocks: List[Block]
 
     secret_keys: Optional[List] = []
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         "target": "diggerhq/tf-module-bundler@master",
         "for_local_run": True,
         "aws_region": "us-east-1",
-        "environment_id": "test-env-id",
+        "id": "test-env-id",
         "blocks": [
             {
                 "name": "network-env-test-1",
