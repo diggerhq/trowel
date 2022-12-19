@@ -1,7 +1,10 @@
+import json
 from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, ValidationError, root_validator
+
+from exceptions import PayloadValidationException
 
 
 class BlockTypeEnum(Enum):
@@ -83,9 +86,7 @@ class Block(BaseModel):
 
         for required_field in cls.Config.required_by_module[module_type]:
             if values[required_field] is None:
-                raise ValueError(
-                    f"Missing mandatory {required_field} in {name} module"
-                )
+                raise ValueError(f"Missing mandatory {required_field} in {name} module")
 
         return values
 
@@ -108,6 +109,13 @@ class PayloadGenerateTerraform(BaseModel):
     secret_keys: Optional[List] = []
     hosted_zone_name: Optional[str]
     created: Optional[int]
+
+
+def validate_payload(payload, cls):
+    try:
+        cls.parse_obj(payload)
+    except ValidationError as err:
+        raise PayloadValidationException(json.dumps(json.loads(err.json())))
 
 
 if __name__ == "__main__":

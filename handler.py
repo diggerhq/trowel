@@ -2,17 +2,15 @@ import json
 import tempfile
 import traceback
 
-from pydantic import ValidationError
-
 from exceptions import PayloadValidationException, LambdaError
-from payloads import PayloadGenerateTerraform
+from payloads import PayloadGenerateTerraform, validate_payload
 from utils import generate_terraform_project
 
 
 def generate_terraform(event, context):
-    print(f'event: {event}, context: {context}')
+    print(f"event: {event}, context: {context}")
     use_temp_dir = True
-       
+
     # check if event is coming from direct invocation or url invocation
     if "body" in event:
         payload = json.loads(event["body"])
@@ -20,14 +18,14 @@ def generate_terraform(event, context):
         payload = event
 
     try:
-        PayloadGenerateTerraform.parse_obj(payload)
-    except ValidationError as err:
+        validate_payload(payload, PayloadGenerateTerraform)
+    except PayloadValidationException as err:
         print(f"generate_terraform: invalid payload: {err}")
-        return {"statusCode": 500, "error": json.dumps(json.loads(err.json()))}
+        return {"statusCode": 500, "error": err.message}
     except Exception as err:
         print(f"generate_terraform: failed to validate payload: {err}")
         return {"statusCode": 500, "error": str(err)}
-        
+
     try:
         if use_temp_dir:
             with tempfile.TemporaryDirectory() as tmp_dir_name:
