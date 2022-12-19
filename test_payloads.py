@@ -23,7 +23,7 @@ class TestPayloadGenerateTerraforms:
 
     @pytest.mark.parametrize(
         "missing_field",
-        ["target", "for_local_run", "aws_region", "id", "blocks"],
+        ["target", "aws_region", "id", "blocks"],
     )
     def test_missing_root_level_field(self, missing_field):
         payload = {
@@ -190,3 +190,4 @@ class TestPayloadGenerateTerraforms:
                 "type": "value_error",
             }
         ]
+
