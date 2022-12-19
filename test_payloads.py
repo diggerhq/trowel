@@ -16,21 +16,21 @@ class TestPayloadGenerateTerraforms:
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
                 "aws_region": "us-east-1",
-                "environment_id": "test-env-id",
+                "id": "test-env-id",
                 "blocks": [],
             }
         )
 
     @pytest.mark.parametrize(
         "missing_field",
-        ["target", "for_local_run", "aws_region", "environment_id", "blocks"],
+        ["target", "for_local_run", "aws_region", "id", "blocks"],
     )
     def test_missing_root_level_field(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
             "for_local_run": True,
             "aws_region": "us-east-1",
-            "environment_id": "test-env-id",
+            "id": "test-env-id",
             "blocks": [],
         }
 
@@ -53,7 +53,7 @@ class TestPayloadGenerateTerraforms:
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
                 "aws_region": "us-east-1",
-                "environment_id": "test-env-id",
+                "id": "test-env-id",
                 "blocks": [
                     {
                         "name": "network-env-test-1",
@@ -70,7 +70,7 @@ class TestPayloadGenerateTerraforms:
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
                 "aws_region": "us-east-1",
-                "environment_id": "test-env-id",
+                "id": "test-env-id",
                 "blocks": [
                     {
                         "name": "core-service-app",
@@ -88,7 +88,7 @@ class TestPayloadGenerateTerraforms:
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
                 "aws_region": "us-east-1",
-                "environment_id": "test-env-id",
+                "id": "test-env-id",
                 "blocks": [
                     {
                         "name": "hubii-db",
@@ -107,7 +107,7 @@ class TestPayloadGenerateTerraforms:
             "target": "diggerhq/tf-module-bundler@master",
             "for_local_run": True,
             "aws_region": "us-east-1",
-            "environment_id": "test-env-id",
+            "id": "test-env-id",
             "blocks": [
                 {
                     "name": "network-env-test-1",
@@ -136,7 +136,7 @@ class TestPayloadGenerateTerraforms:
             "target": "diggerhq/tf-module-bundler@master",
             "for_local_run": True,
             "aws_region": "us-east-1",
-            "environment_id": "test-env-id",
+            "id": "test-env-id",
             "blocks": [
                 {
                     "name": "core-service-app",
@@ -166,7 +166,7 @@ class TestPayloadGenerateTerraforms:
             "target": "diggerhq/tf-module-bundler@master",
             "for_local_run": True,
             "aws_region": "us-east-1",
-            "environment_id": "test-env-id",
+            "id": "test-env-id",
             "blocks": [
                 {
                     "name": "hubii-db",
