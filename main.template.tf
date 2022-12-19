@@ -19,7 +19,7 @@ provider "aws" {
       source = "./{{ block.name }}"
       vpc_id = module.{{ network_module_name }}.vpc_id
       ecs_cluster_name = "{{block.aws_app_identifier}}"
-      ecs_service_name = "{{block.aws_app_identifier}}"
+      ecs_service_name = "{{block.aws_app_identifier}}"`
       alb_subnet_ids = {{block.alb_subnet_ids}}
       ecs_subnet_ids = {{block.ecs_subnet_ids}}
 
