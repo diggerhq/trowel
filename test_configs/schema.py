@@ -101,7 +101,7 @@ class Module(BaseModel):
 
 class LambdaPayload(BaseModel):
     target: str
-    for_local_run: bool
+    for_local_run: Optional[bool]
     aws_region: str
     environment_id: str
     modules: List[Module]
