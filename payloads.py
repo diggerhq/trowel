@@ -1,10 +1,13 @@
+import json
 from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, ValidationError, root_validator
 
+from exceptions import PayloadValidationException
 
-class ModuleTypeEnum(Enum):
+
+class BlockTypeEnum(Enum):
     vpc = "vpc"
     container = "container"
     resource = "resource"
@@ -28,13 +31,12 @@ class EnvironmentVariable(BaseModel):
     value: str
 
 
-class Module(BaseModel):
-    module_name: str
+class Block(BaseModel):
+    name: str
     target: str
-    type: ModuleTypeEnum
+    type: BlockTypeEnum
 
     # vpc
-    network_name: Optional[str]
     enable_vpc_endpoints: Optional[bool]
     enable_dns_hostnames: Optional[bool]
     enable_dns_support: Optional[bool]
@@ -80,62 +82,68 @@ class Module(BaseModel):
             return values
 
         module_type = values["type"]
-        module_name = values["module_name"]
+        name = values["name"]
 
         for required_field in cls.Config.required_by_module[module_type]:
             if values[required_field] is None:
-                raise ValueError(
-                    f"Missing mandatory {required_field} in {module_name} module"
-                )
+                raise ValueError(f"Missing mandatory {required_field} in {name} module")
 
         return values
 
     class Config:
         # Declare which fields are mandatory for given module type
         required_by_module = {
-            ModuleTypeEnum.vpc: ("network_name",),
-            ModuleTypeEnum.container: ("aws_app_identifier",),
-            ModuleTypeEnum.resource: ("resource_type", "aws_app_identifier",),
+            BlockTypeEnum.vpc: (),
+            BlockTypeEnum.container: ("aws_app_identifier",),
+            BlockTypeEnum.resource: ("resource_type", "aws_app_identifier",),
         }
 
 
-class LambdaPayload(BaseModel):
+class PayloadGenerateTerraform(BaseModel):
     target: str
     for_local_run: Optional[bool]
     aws_region: str
-    environment_id: str
-    modules: List[Module]
+    id: str
+    blocks: List[Block]
 
     secret_keys: Optional[List] = []
     hosted_zone_name: Optional[str]
     created: Optional[int]
 
 
+def validate_payload(payload, cls):
+    try:
+        cls.parse_obj(payload)
+    except ValidationError as err:
+        raise PayloadValidationException(json.dumps(json.loads(err.json())))
+    except ValueError as err:
+        raise PayloadValidationException(str(err))
+
+
 if __name__ == "__main__":
-    LambdaPayload.parse_file("digger.json")
-    LambdaPayload.parse_file("hubii.json")
-    LambdaPayload.parse_file("test.json")
+    PayloadGenerateTerraform.parse_file("digger.json")
+    PayloadGenerateTerraform.parse_file("hubii.json")
+    PayloadGenerateTerraform.parse_file("test.json")
 
     payload = {
         "target": "diggerhq/tf-module-bundler@master",
         "for_local_run": True,
         "aws_region": "us-east-1",
-        "environment_id": "test-env-id",
-        "modules": [
+        "id": "test-env-id",
+        "blocks": [
             {
-                "module_name": "network-env-test-1",
+                "name": "network-env-test-1",
                 "target": "diggerhq/target-network-module@main",
                 "type": "vpc",
-                "network_name": "env-test-1",
             },
             {
-                "module_name": "core-service-app",
+                "name": "core-service-app",
                 "target": "diggerhq/target-ecs-module@dev",
                 "type": "container",
                 "aws_app_identifier": "core-service",
             },
             {
-                "module_name": "hubii-db",
+                "name": "hubii-db",
                 "target": "diggerhq/target-resource-module@main",
                 "type": "resource",
                 "aws_app_identifier": "hubii-db",
@@ -145,7 +153,7 @@ if __name__ == "__main__":
     }
 
     try:
-        LambdaPayload.parse_obj(payload)
+        PayloadGenerateTerraform.parse_obj(payload)
     except ValidationError as err:
         error_str = err.json()
         print(type(error_str), error_str)

@@ -1,0 +1,13 @@
+name: Unit Tests
+on: [push]
+jobs:
+  test:
+    runs-on: [self-hosted]
+    steps:
+      - name: Prepare repo
+        uses: actions/checkout@master
+
+      - name: pytest
+        run: |
+          docker build -f ./Dockerfile.pytest -t trowel-pytest .
+          docker run trowel-pytest

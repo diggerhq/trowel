@@ -2,7 +2,7 @@
   "target": "diggerhq/tf-module-bundler@master",
   "for_local_run": true,
   "aws_region": "us-east-1",
-  "environment_id": "test-env-id",
+  "id": "test-env-id",
   "modules": [
     {
       "module_name": "network-env-test-1",
