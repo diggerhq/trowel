@@ -1,7 +1,10 @@
+import json
 from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, ValidationError, root_validator
+
+from exceptions import PayloadValidationException
 
 
 class BlockTypeEnum(Enum):
@@ -83,9 +86,7 @@ class Block(BaseModel):
 
         for required_field in cls.Config.required_by_module[module_type]:
             if values[required_field] is None:
-                raise ValueError(
-                    f"Missing mandatory {required_field} in {name} module"
-                )
+                raise ValueError(f"Missing mandatory {required_field} in {name} module")
 
         return values
 
@@ -98,7 +99,7 @@ class Block(BaseModel):
         }
 
 
-class LambdaPayload(BaseModel):
+class PayloadGenerateTerraform(BaseModel):
     target: str
     for_local_run: bool
     aws_region: str
@@ -110,10 +111,17 @@ class LambdaPayload(BaseModel):
     created: Optional[int]
 
 
+def validate_payload(payload, cls):
+    try:
+        cls.parse_obj(payload)
+    except ValidationError as err:
+        raise PayloadValidationException(json.dumps(json.loads(err.json())))
+
+
 if __name__ == "__main__":
-    LambdaPayload.parse_file("digger.json")
-    LambdaPayload.parse_file("hubii.json")
-    LambdaPayload.parse_file("test.json")
+    PayloadGenerateTerraform.parse_file("digger.json")
+    PayloadGenerateTerraform.parse_file("hubii.json")
+    PayloadGenerateTerraform.parse_file("test.json")
 
     payload = {
         "target": "diggerhq/tf-module-bundler@master",
@@ -143,7 +151,7 @@ if __name__ == "__main__":
     }
 
     try:
-        LambdaPayload.parse_obj(payload)
+        PayloadGenerateTerraform.parse_obj(payload)
     except ValidationError as err:
         error_str = err.json()
         print(type(error_str), error_str)

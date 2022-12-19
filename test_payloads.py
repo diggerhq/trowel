@@ -2,42 +2,42 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from payloads import LambdaPayload
+from payloads import PayloadGenerateTerraform
 
 
-class TestLambdaPayloads:
+class TestPayloadGenerateTerraforms:
     def test_empty_payload(self):
         with pytest.raises(ValidationError):
-            LambdaPayload.parse_obj({})
+            PayloadGenerateTerraform.parse_obj({})
 
     def test_success(self):
-        assert LambdaPayload.parse_obj(
+        assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
                 "aws_region": "us-east-1",
-                "environment_id": "test-env-id",
+                "id": "test-env-id",
                 "blocks": [],
             }
         )
 
     @pytest.mark.parametrize(
         "missing_field",
-        ["target", "for_local_run", "aws_region", "environment_id", "blocks"],
+        ["target", "for_local_run", "aws_region", "id", "blocks"],
     )
     def test_missing_root_level_field(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
             "for_local_run": True,
             "aws_region": "us-east-1",
-            "environment_id": "test-env-id",
+            "id": "test-env-id",
             "blocks": [],
         }
 
         del payload[missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
-            LambdaPayload.parse_obj(payload)
+            PayloadGenerateTerraform.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
@@ -48,12 +48,12 @@ class TestLambdaPayloads:
         ]
 
     def test_module_vpc(self):
-        assert LambdaPayload.parse_obj(
+        assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
                 "aws_region": "us-east-1",
-                "environment_id": "test-env-id",
+                "id": "test-env-id",
                 "blocks": [
                     {
                         "name": "network-env-test-1",
@@ -65,12 +65,12 @@ class TestLambdaPayloads:
         )
 
     def test_module_container(self):
-        assert LambdaPayload.parse_obj(
+        assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
                 "aws_region": "us-east-1",
-                "environment_id": "test-env-id",
+                "id": "test-env-id",
                 "blocks": [
                     {
                         "name": "core-service-app",
@@ -83,12 +83,12 @@ class TestLambdaPayloads:
         )
 
     def test_module_resource(self):
-        assert LambdaPayload.parse_obj(
+        assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
                 "aws_region": "us-east-1",
-                "environment_id": "test-env-id",
+                "id": "test-env-id",
                 "blocks": [
                     {
                         "name": "hubii-db",
@@ -107,7 +107,7 @@ class TestLambdaPayloads:
             "target": "diggerhq/tf-module-bundler@master",
             "for_local_run": True,
             "aws_region": "us-east-1",
-            "environment_id": "test-env-id",
+            "id": "test-env-id",
             "blocks": [
                 {
                     "name": "network-env-test-1",
@@ -120,7 +120,7 @@ class TestLambdaPayloads:
         del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
-            LambdaPayload.parse_obj(payload)
+            PayloadGenerateTerraform.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
@@ -136,7 +136,7 @@ class TestLambdaPayloads:
             "target": "diggerhq/tf-module-bundler@master",
             "for_local_run": True,
             "aws_region": "us-east-1",
-            "environment_id": "test-env-id",
+            "id": "test-env-id",
             "blocks": [
                 {
                     "name": "core-service-app",
@@ -150,7 +150,7 @@ class TestLambdaPayloads:
         del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
-            LambdaPayload.parse_obj(payload)
+            PayloadGenerateTerraform.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {
@@ -166,7 +166,7 @@ class TestLambdaPayloads:
             "target": "diggerhq/tf-module-bundler@master",
             "for_local_run": True,
             "aws_region": "us-east-1",
-            "environment_id": "test-env-id",
+            "id": "test-env-id",
             "blocks": [
                 {
                     "name": "hubii-db",
@@ -181,7 +181,7 @@ class TestLambdaPayloads:
         del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
-            LambdaPayload.parse_obj(payload)
+            PayloadGenerateTerraform.parse_obj(payload)
 
         assert json.loads(exinfo.value.json()) == [
             {

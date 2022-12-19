@@ -3,19 +3,29 @@ import tempfile
 import traceback
 
 from exceptions import PayloadValidationException, LambdaError
+from payloads import PayloadGenerateTerraform, validate_payload
 from utils import generate_terraform_project
 
 
 def generate_terraform(event, context):
-    print(f'event: {event}, context: {context}')
+    print(f"event: {event}, context: {context}")
     use_temp_dir = True
-       
+
     # check if event is coming from direct invocation or url invocation
     if "body" in event:
         payload = json.loads(event["body"])
     else:
         payload = event
-        
+
+    try:
+        validate_payload(payload, PayloadGenerateTerraform)
+    except PayloadValidationException as err:
+        print(f"generate_terraform: invalid payload: {err}")
+        return {"statusCode": 500, "error": err.message}
+    except Exception as err:
+        print(f"generate_terraform: failed to validate payload: {err}")
+        return {"statusCode": 500, "error": str(err)}
+
     try:
         if use_temp_dir:
             with tempfile.TemporaryDirectory() as tmp_dir_name:
