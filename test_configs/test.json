@@ -3,9 +3,8 @@
   "for_local_run": true,
   "aws_region": "us-east-1",
   "id": "test-env-id",
-  "modules": [
+  "blocks": [
     {
-      "module_name": "network-env-test-1",
       "name": "network-env-test-1",
       "type": "vpc",
       "target": "diggerhq/target-network-module@main",
@@ -17,7 +16,6 @@
       "enable_nat_gateway": true
     },
     {
-      "module_name": "99d98a74-3f4d-438a-983f-c1dea5a90cc8",
       "name": "99d98a74-3f4d-438a-983f-c1dea5a90cc8",
       "type": "container",
       "target": "diggerhq/target-ecs-module@dev",

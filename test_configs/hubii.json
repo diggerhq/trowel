@@ -3,9 +3,9 @@
   "for_local_run": true,
   "aws_region": "us-east-1",
   "id": "test-env-id",
-  "modules": [
+  "blocks": [
     {
-      "module_name": "network-env-test-1",
+      "name": "network-env-test-1",
       "target": "diggerhq/target-network-module@main",
       "type": "vpc",
       "network_name": "env-test-1",
@@ -16,7 +16,7 @@
       "enable_nat_gateway": true
     },
     {
-      "module_name": "core-service-app",
+      "name": "core-service-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "module_name": "customer-service-app",
+      "name": "customer-service-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -84,7 +84,7 @@
       ]
     },
     {
-      "module_name": "store-router-app",
+      "name": "store-router-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -115,7 +115,7 @@
       ]
     },
     {
-      "module_name": "supplier-next-app",
+      "name": "supplier-next-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "task_cpu": 1024,
@@ -138,7 +138,7 @@
       "secret_keys": []
     },
     {
-      "module_name": "hub-next-app",
+      "name": "hub-next-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -159,7 +159,7 @@
       "secret_keys": []
     },
     {
-      "module_name": "godmode-react-app",
+      "name": "godmode-react-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "task_cpu": 2048,
@@ -218,7 +218,7 @@
       "secret_keys": []
     },
     {
-      "module_name": "store-react-app",
+      "name": "store-react-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -239,7 +239,7 @@
       "secret_keys": []
     },
     {
-      "module_name": "order-service-app",
+      "name": "order-service-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -270,7 +270,7 @@
       ]
     },
     {
-      "module_name": "product-service-app",
+      "name": "product-service-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -301,7 +301,7 @@
       ]
     },
     {
-      "module_name": "supplier-service-app",
+      "name": "supplier-service-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -332,7 +332,7 @@
       ]
     },
     {
-      "module_name": "hub-service-app",
+      "name": "hub-service-app",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
@@ -371,7 +371,7 @@
       "rds_instance_class": "db.t3.micro",
       "connection_schema": "postgres",
       "date_created": "2022-11-17T11:53:22-0600",
-      "module_name": "hubii-db",
+      "name": "hubii-db",
       "target": "diggerhq/target-resource-module@main",
       "type": "resource",
       "aws_app_identifier": "hubii-db",
