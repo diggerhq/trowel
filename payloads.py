@@ -101,9 +101,10 @@ class Block(BaseModel):
 
 class PayloadGenerateTerraform(BaseModel):
     target: str
-    for_local_run: Optional[bool]
     aws_region: str
     id: str
+    for_local_run: Optional[bool]
+    datadog_enabled: Optional[bool]
     blocks: List[Block]
 
     secret_keys: Optional[List] = []
