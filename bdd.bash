@@ -1,5 +1,5 @@
 rm -rf tf
-python run_lambda.py test_configs/digger.json tf
+poetry run python run_lambda.py test_configs/digger.json tf
 
 cd tf
 terraform init
