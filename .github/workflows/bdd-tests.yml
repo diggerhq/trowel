@@ -1,0 +1,14 @@
+name: Unit Tests
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare repo
+        uses: actions/checkout@master
+
+      - name: terraform-compliance
+        run: |
+          apt-get install terraform
+          chmod +x bdd.bash
+          ./bdd.bash
