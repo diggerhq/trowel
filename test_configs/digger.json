@@ -6,9 +6,9 @@
   "secret_keys": [],
   "hosted_zone_name": "uselemon.cloud",
   "datadog_enabled": true,
-  "modules": [
+  "blocks": [
     {
-      "module_name": "digger-vpc",
+      "name": "digger-vpc",
       "target": "diggerhq/target-network-module@main",
       "type": "vpc",
       "network_name": "digger-vpc",
@@ -19,7 +19,7 @@
       "enable_nat_gateway": false
     },
     {
-      "module_name": "backend-cli",
+      "name": "backend-cli",
       "subdomain_name": "trowel-backend",
       "target": "diggerhq/target-ecs-module@move-ssm-params",
       "type": "container",
@@ -42,7 +42,7 @@
       "datadog_enabled": true
     },
     {
-      "module_name": "celery-worker",
+      "name": "celery-worker",
       "target": "diggerhq/target-ecs-module@move-ssm-params",
       "type": "container",
       "health_check": "/",
@@ -59,7 +59,7 @@
       "secrets": []
     },
     {
-      "module_name": "celery-beat",
+      "name": "celery-beat",
       "target": "diggerhq/target-ecs-module@move-ssm-params",
       "type": "container",
       "health_check": "/",
@@ -76,7 +76,7 @@
       "secrets": []
     },
     {
-      "module_name": "frontend",
+      "name": "frontend",
       "subdomain_name": "trowel-frontend",
       "target": "diggerhq/target-ecs-module@move-ssm-params",
       "type": "container",
@@ -102,7 +102,7 @@
       "database_username": "digger",
       "rds_instance_class": "db.t3.micro",
       "connection_schema": "postgres",
-      "module_name": "digger-db",
+      "name": "digger-db",
       "target": "diggerhq/target-resource-module@main",
       "type": "resource",
       "aws_app_identifier": "digger-db",
@@ -114,7 +114,7 @@
       "redis_instance_class": "cache.t3.micro",
       "redis_number_nodes": 1,
       "date_created": "2022-11-23T03:56:59-0600",
-      "module_name": "resource-redis",
+      "name": "resource-redis",
       "target": "diggerhq/target-elasticache-module@main",
       "type": "resource",
       "aws_app_identifier": "redis",

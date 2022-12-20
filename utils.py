@@ -418,11 +418,11 @@ def generate_terraform_project(terraform_project_dir, config):
         raise PayloadValidationException(
             '"blocks" key is missing in provided configuration.'
         )
-    if "environment_id" not in config:
+    if "id" not in config:
         raise PayloadValidationException(
-            '"environment_id" key is missing in provided configuration.'
+            '"id" key is missing in provided configuration.'
         )
-    environment_id = config['environment_id']
+    environment_id = config['id']
     terraform_dir = f"{terraform_project_dir}/terraform"
 
     if os.path.isdir(terraform_dir):
