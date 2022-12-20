@@ -8,9 +8,13 @@ jobs:
         uses: actions/checkout@master
 
       - name: Install Terraform
-        uses: little-core-labs/install-terraform@v2.0.0
+        uses: hashicorp/setup-terraform@v2
 
       - name: Run terraform-compliance
         run: |
+          pip install --upgrade pip
+          pip install poetry
+          poetry config virtualenvs.create false --local
+          poetry install
           chmod +x bdd.bash
           ./bdd.bash
