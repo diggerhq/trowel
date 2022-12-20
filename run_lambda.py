@@ -39,7 +39,7 @@ if __name__ == "__main__":
     payload = json.load(open(sys.argv[1]))
     output_dir = sys.argv[2]
 
-    resp = generate_terraform(json.load(open(sys.argv[1])), None)
+    resp = generate_terraform(payload, None)
     zipbuf = base64.b64decode(resp["body"])
     unzip_buffer_into_directory(zipbuf, output_dir)
 
