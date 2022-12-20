@@ -1,29 +1,28 @@
 
 {% if hosted_zone_name is defined %}
-
 data "aws_route53_zone" "route53_zone" {
   name         = "{{ hosted_zone_name }}"
   private_zone = false
 }
 
-  {% for module in modules %}
-    {% if module.type == "container" and module.subdomain_name is defined %}
-      resource "aws_route53_record" "{{ module.module_name }}_cname_record" {
+  {% for block in blocks %}
+    {% if block.type == "container" and block.subdomain_name is defined %}
+      resource "aws_route53_record" "{{ block.module_name }}_cname_record" {
         zone_id = data.aws_route53_zone.route53_zone.id
-        name    = "{{ module.subdomain_name }}.{{ hosted_zone_name }}"
+        name    = "{{ block.subdomain_name }}.{{ hosted_zone_name }}"
         type    = "CNAME"
         ttl     = "60"
-        records = [module.{{ module.module_name }}.lb_dns]
+        records = [module.{{ block.module_name }}.lb_dns]
       }
 
-      resource "aws_acm_certificate" "{{ module.module_name }}_acm_certificate" {
-        domain_name       = "{{ module.subdomain_name }}.{{ hosted_zone_name }}"
+      resource "aws_acm_certificate" "{{ block.module_name }}_acm_certificate" {
+        domain_name       = "{{ block.subdomain_name }}.{{ hosted_zone_name }}"
         validation_method = "DNS"
       }
 
-      resource "aws_route53_record" "{{ module.module_name }}_cert_validation_record" {
+      resource "aws_route53_record" "{{ block.module_name }}_cert_validation_record" {
         for_each = {
-          for dvo in aws_acm_certificate.{{ module.module_name }}_acm_certificate.domain_validation_options : dvo.domain_name => {
+          for dvo in aws_acm_certificate.{{ block.module_name }}_acm_certificate.domain_validation_options : dvo.domain_name => {
             name   = dvo.resource_record_name
             record = dvo.resource_record_value
             type   = dvo.resource_record_type
@@ -38,9 +37,9 @@ data "aws_route53_zone" "route53_zone" {
         zone_id         = data.aws_route53_zone.route53_zone.zone_id
       }
 
-      resource "aws_acm_certificate_validation" "{{ module.module_name }}_acm_cert_validation" {
-        certificate_arn         = aws_acm_certificate.{{ module.module_name }}_acm_certificate.arn
-        validation_record_fqdns = [for record in aws_route53_record.{{ module.module_name }}_cert_validation_record : record.fqdn]
+      resource "aws_acm_certificate_validation" "{{ block.module_name }}_acm_cert_validation" {
+        certificate_arn         = aws_acm_certificate.{{ block.module_name }}_acm_certificate.arn
+        validation_record_fqdns = [for record in aws_route53_record.{{ block.module_name }}_cert_validation_record : record.fqdn]
       }
     {% endif %}
   {% endfor %}
