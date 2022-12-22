@@ -22,13 +22,11 @@ class TestPayloadGenerateTerraforms:
         )
 
     @pytest.mark.parametrize(
-        "missing_field",
-        ["target", "aws_region", "id", "blocks"],
+        "missing_field", ["target", "aws_region", "id", "blocks"],
     )
     def test_missing_root_level_field(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
-            "for_local_run": True,
             "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [],
@@ -47,11 +45,10 @@ class TestPayloadGenerateTerraforms:
             }
         ]
 
-    def test_module_vpc(self):
+    def test_block_vpc(self):
         assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
-                "for_local_run": True,
                 "aws_region": "us-east-1",
                 "id": "test-env-id",
                 "blocks": [
@@ -64,11 +61,10 @@ class TestPayloadGenerateTerraforms:
             }
         )
 
-    def test_module_container(self):
+    def test_block_container(self):
         assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
-                "for_local_run": True,
                 "aws_region": "us-east-1",
                 "id": "test-env-id",
                 "blocks": [
@@ -82,11 +78,10 @@ class TestPayloadGenerateTerraforms:
             }
         )
 
-    def test_module_resource(self):
+    def test_block_resource(self):
         assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
-                "for_local_run": True,
                 "aws_region": "us-east-1",
                 "id": "test-env-id",
                 "blocks": [
@@ -105,7 +100,6 @@ class TestPayloadGenerateTerraforms:
     def test_missing_mandatory_field_in_vpc(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
-            "for_local_run": True,
             "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [
@@ -125,7 +119,7 @@ class TestPayloadGenerateTerraforms:
         assert json.loads(exinfo.value.json()) == [
             {
                 "loc": ["blocks", 0, "__root__"],
-                "msg": f"Missing mandatory {missing_field} in network-env-test-1 module",
+                "msg": f"Missing mandatory {missing_field} in network-env-test-1 block",
                 "type": "value_error",
             }
         ]
@@ -134,7 +128,6 @@ class TestPayloadGenerateTerraforms:
     def test_missing_mandatory_field_in_container(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
-            "for_local_run": True,
             "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [
@@ -155,7 +148,7 @@ class TestPayloadGenerateTerraforms:
         assert json.loads(exinfo.value.json()) == [
             {
                 "loc": ["blocks", 0, "__root__"],
-                "msg": f"Missing mandatory {missing_field} in core-service-app module",
+                "msg": f"Missing mandatory {missing_field} in core-service-app block",
                 "type": "value_error",
             }
         ]
@@ -164,7 +157,6 @@ class TestPayloadGenerateTerraforms:
     def test_missing_mandatory_field_in_resource(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
-            "for_local_run": True,
             "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [
@@ -186,8 +178,25 @@ class TestPayloadGenerateTerraforms:
         assert json.loads(exinfo.value.json()) == [
             {
                 "loc": ["blocks", 0, "__root__"],
-                "msg": f"Missing mandatory {missing_field} in hubii-db module",
+                "msg": f"Missing mandatory {missing_field} in hubii-db block",
                 "type": "value_error",
             }
         ]
 
+    @pytest.mark.parametrize("block_name", ("999-starts-with-digit", ""))
+    def test_block_name_negatively(self, block_name):
+        with pytest.raises(ValidationError):
+            assert PayloadGenerateTerraform.parse_obj(
+                {
+                    "target": "diggerhq/tf-module-bundler@master",
+                    "aws_region": "us-east-1",
+                    "id": "test-env-id",
+                    "blocks": [
+                        {
+                            "name": block_name,
+                            "target": "diggerhq/target-network-module@main",
+                            "type": "vpc",
+                        },
+                    ],
+                }
+            )
