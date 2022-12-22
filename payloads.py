@@ -28,7 +28,7 @@ class RdsEngineEnum(Enum):
 
 class EnvironmentVariable(BaseModel):
     key: constr(min_length=1)
-    value: constr(min_length=1)
+    value: str
 
 
 class Block(BaseModel):
