@@ -17,12 +17,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.TEST_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Run terraform-compliance
+      - name: Install Trowel
         run: |
           pip install --upgrade pip
           pip install poetry
           poetry install
-          bash bdd.bash
+
+      - name: Run terraform-compliance
           bash bdd.bash test_configs/test.json
           bash bdd.bash test_configs/digger.json
           bash bdd.bash test_configs/hubii.json
