@@ -23,3 +23,6 @@ jobs:
           pip install poetry
           poetry install
           bash bdd.bash
+          bash bdd.bash test_configs/test.json
+          bash bdd.bash test_configs/digger.json
+          bash bdd.bash test_configs/hubii.json
