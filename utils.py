@@ -259,6 +259,7 @@ FILTERS["underscorify"] = underscorify
 def render_jinja_template(
     terraform_options, input_file, output_file, delete_original=False
 ):
+    print(f'input_file:{input_file},terraform_options:{terraform_options}')
     with open(input_file) as template_file:
         template_content = template_file.read()
         template = Template(template_content)
@@ -430,6 +431,7 @@ def generate_terraform_project(terraform_project_dir, config):
     os.makedirs(os.path.abspath(terraform_dir))
     network_module_name = None
     ecs_security_groups_list = []
+    block_secrets = {}
 
     datadog_enabled = False
     if 'datadog_enabled' in config and config['datadog_enabled']:
@@ -503,6 +505,9 @@ def generate_terraform_project(terraform_project_dir, config):
             )
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
             updated_config["blocks"].append(m)
+
+            if "secret_keys" in m:
+                block_secrets[m['name']] = m['secret_keys']
 
     ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
     print(f"ecs_security_groups: {ecs_security_groups}")
@@ -591,9 +596,12 @@ def generate_terraform_project(terraform_project_dir, config):
             )
             updated_config["blocks"].append(m)
 
-    # pprint(f"updated_config: {updated_config}")
+    # process root level terraform templates
     main_tf_options = config
     main_tf_options["network_module_name"] = network_module_name
+    main_tf_options["block_secret_keys"] = block_secrets
+
+    print(f'main_tf_options: {main_tf_options}')
     process_tf_templates(
         dest_dir=terraform_dir,
         terraform_options=main_tf_options,
@@ -612,11 +620,12 @@ def generate_terraform_project(terraform_project_dir, config):
             override_repo_branch=config["override_repo"].get("repo_branch", None),
         )
 
+    # zip generated terraform project
     with tempfile.TemporaryDirectory() as tmp_dir_name:
         name = "terraform"
         extension = "zip"
 
-        # it's important to not to change current dir in lambda otherwise it will blow up on the next request
+        # it's important to not change current dir in lambda otherwise it will blow up on the next request
         current_dir = os.getcwd()
         try:
             os.chdir(terraform_dir)
