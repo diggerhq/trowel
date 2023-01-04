@@ -1,25 +1,20 @@
-{% for s in secret_keys %}
-resource "aws_ssm_parameter" "{{ s | lower }}" {
-  name        = "/{{ environment_id }}/{{ s | lower }}"
-  description = "{{ s }}"
-  type        = "SecureString"
-  value       = "REPLACE_ME"
-  lifecycle {
-    ignore_changes = [value]
-  }
-}
-{% endfor %}
+
 
 {% if secret_keys is defined %}
 locals {
-  secrets = [
-        {% for s in secret_keys %}
+{% for block_name, block_secrets in block_secret_keys.items() %}
+
+{{ block_name | underscorify }}_secrets = [
+        {% for s, v in block_secrets.items() %}
 {
 "key" : "{{ s }}"
-"value": aws_ssm_parameter.{{s | lower}}.arn
+"value": "{{ secret_keys[v] }}"
 },
         {% endfor %}
   ]
+        {% endfor %}
 }
 {% endif %}
+
+
 
