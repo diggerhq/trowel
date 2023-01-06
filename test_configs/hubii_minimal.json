@@ -137,6 +137,8 @@
       "aws_app_identifier": "store-react",
       "monitoring_enabled": true,
       "lb_monitoring_enabled": true,
+      "task_cpu": 2048,
+      "task_memory": 4096,
       "environment_variables": [
         {
           "key": "NEXT_PUBLIC_STORE_ROUTER",
