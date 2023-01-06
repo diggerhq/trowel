@@ -147,7 +147,7 @@
       "environment_variables": [
         {
           "key": "NEXT_PUBLIC_STORE_ROUTER",
-          "value": "http://store-router-1699909583.us-east-1.elb.amazonaws.com"
+          "value": "http://store-router-478266153.us-east-1.elb.amazonaws.com"
         }
       ],
       "secret_keys": {}
@@ -239,7 +239,7 @@
         },
         {
           "key": "ORDER_SERVICE_ENDPOINT",
-          "value": "http://order-service-451886870.us-east-1.elb.amazonaws.com"
+          "value": "http://order-service-606590112.us-east-1.elb.amazonaws.com"
         },
         {
           "key": "ORDER_SERVICE_TOKEN",
@@ -331,6 +331,74 @@
       "secret_keys": {
         "DB_PASSWORD": "DB_PASSWORD",
         "JWT_SECRET": "PRODUCT_JWT_SECRET"
+      }
+    },
+    {
+      "name": "store-router-app",
+      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "store-router",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        },
+        {
+          "key": "APP_DEBUG",
+          "value": "true"
+        },
+        {
+          "key": "DB_CONNECTION",
+          "value": "pgsql"
+        },
+        {
+          "key": "DB_SCHEMA",
+          "value": "hubii_staging"
+        },
+        {
+          "key": "PRODUCT_SERVICE_ENDPOINT",
+          "value": "http://product-service-2098129721.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "PRODUCT_SERVICE_TOKEN",
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwcm9kdWN0Iiwic3ViIjoic3RvcmVfZnJvbnQiLCJ0eXBlIjoic2VydmljZSIsImlhdCI6MTU5MjUxMDc0N30.SGIjm7TP0vUdQH7-RKnbP11HKFd_A9a6Mr-i9L6kFeM"
+        },
+        {
+          "key": "ORDER_SERVICE_ENDPOINT",
+          "value": "http://order-service-606590112.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "ORDER_SERVICE_TOKEN",
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJvcmRlciIsInN1YiI6InN0b3JlX2Zyb250IiwidHlwZSI6InNlcnZpY2UiLCJpYXQiOjE1OTI1MTA3NDd9.H44xEIE4ApBR4FEHY7KTM0E6hzfzJppTRSPFkBkK1eI"
+        },
+        {
+          "key": "CORE_SERVICE_ENDPOINT",
+          "value": "http://core-service-244174806.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "CORE_SERVICE_TOKEN",
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjb3JlIiwic3ViIjoic3RvcmVfZnJvbnQiLCJ0eXBlIjoic2VydmljZSIsImlhdCI6MTU5MjUxMDc0N30._uzSrfHg_OWIBicy-iNLISwlIP1Wz01uH36o_yiTFLc"
+        }
+      ],
+      "secret_keys": {
+        "DB_PASSWORD": "DB_PASSWORD",
+        "JWT_SECRET": "ORDER_JWT_SECRET"
       }
     },
     {
