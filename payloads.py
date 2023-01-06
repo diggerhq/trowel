@@ -58,10 +58,9 @@ class Block(BaseModel):
     lb_monitoring_enabled: Optional[bool]
     launch_type: Optional[LaunchTypeEnum]
     environment_variables: Optional[List[EnvironmentVariable]]
-    secret_keys: Optional[List[str]]
+    secrets: Optional[List[str]]
     secrets_mapping: Optional[List[str]]
     env_mapping: Optional[List[str]]
-    secrets: Optional[List[str]]
     task_cpu: Optional[int]
     task_mem: Optional[int]
 

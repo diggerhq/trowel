@@ -32,7 +32,7 @@ provider "aws" {
       {{ "task_memory=" + block.task_memory | lower if block.task_memory is defined else '' }}
       {{ "internal=" + block.internal | lower if block.internal is defined else '' }}
       {{ 'environment_variables=' + block.environment_variables if block.environment_variables is defined  else '' }}
-      {{ 'secrets=local.' + block.name | underscorify + '_secrets' if block.secrets is defined  else '' }}
+      {{ 'secrets=local.' + block.name | underscorify + '_secrets' if block.secrets is defined and block.secrets | length > 0  else '' }}
 
       {{ "datadog_key_ssm_arn=aws_ssm_parameter.datadog_key.arn" if block.datadog_enabled is defined else '' }}
 
