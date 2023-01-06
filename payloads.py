@@ -77,6 +77,10 @@ class Block(BaseModel):
     connection_schema: Optional[str]
     date_created: Optional[str]
 
+    # imported
+    custom_terraform: Optional[List[Dict[str, str]]]
+    imported_id: Optional[str]
+
     @root_validator
     def module_has_mandatory_data(cls, values):
         if "type" not in values:
