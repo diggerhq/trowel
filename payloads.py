@@ -97,6 +97,7 @@ class Block(BaseModel):
             BlockTypeEnum.vpc: (),
             BlockTypeEnum.container: ("aws_app_identifier",),
             BlockTypeEnum.resource: ("resource_type", "aws_app_identifier",),
+            BlockTypeEnum.imported: ("custom_terraform",),
         }
 
 
