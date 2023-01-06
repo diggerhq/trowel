@@ -11,6 +11,7 @@ class BlockTypeEnum(Enum):
     vpc = "vpc"
     container = "container"
     resource = "resource"
+    imported = "imported"
 
 
 class ResourceTypeEnum(Enum):
@@ -33,7 +34,7 @@ class EnvironmentVariable(BaseModel):
 
 class Block(BaseModel):
     name: str
-    target: str
+    target: Optional[str]
     type: BlockTypeEnum
 
     # vpc
