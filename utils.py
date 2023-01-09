@@ -304,6 +304,20 @@ def process_terraform_overrides(dest_dir, override_repo_name, override_repo_user
                 shutil.copy2(os.path.join(overrides_dir, f), dest_dir)
 
 
+def process_custom_terraform(dest_dir, custom_terraform: str):
+    print(f'process_custom_terraform:')
+    with tempfile.TemporaryDirectory() as tmp_dir_name:
+        file_name = "overrides.tf"
+        decoded_content = base64.b64decode(custom_terraform)
+        with open(os.path.join(dest_dir, file_name), 'wb') as f:
+            f.write(decoded_content)
+
+        # copy generated files from tmp dir to dest_dir
+        files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
+        for f in files:
+            shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
+
+
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
     recreate_dir(dest_dir)
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
@@ -406,6 +420,18 @@ def parse_module_target(target):
 
 
 def generate_terraform_project(terraform_project_dir, config):
+    """
+    generates terraform project for specified options in config and return it as base64 encoded zip file in
+    the following json:
+        {
+          "statusCode": 200,
+          "body": encoded_zip,
+        }
+
+    :param terraform_project_dir:
+    :param config:
+    :return:
+    """
     debug = False
     if "debug" in config and config["debug"]:
         debug = True
@@ -614,6 +640,9 @@ def generate_terraform_project(terraform_project_dir, config):
             override_repo_region=config["override_repo"]["repo_region"],
             override_repo_branch=config["override_repo"].get("repo_branch", None),
         )
+
+    if "custom_terraform" in config:
+        process_custom_terraform(dest_dir=terraform_dir, custom_terraform=config['custom_terraform'])
 
     # zip generated terraform project
     with tempfile.TemporaryDirectory() as tmp_dir_name:
