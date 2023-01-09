@@ -17,13 +17,14 @@ config.read('./test_configs/hubii.ini')
 
 if not 'secrets' in bundle_spec:
     bundle_spec['secrets'] = []
-for k, v in config['secrets'].items():
-    bundle_spec['secrets'].append(str(k))
+#for k, v in config['secrets'].items():
+#    bundle_spec['secrets'].append(str(k))
 
 for m in bundle_spec['blocks']:
     if m['type'] == 'container':
-        for k, v in config['envs'].items():
-            m['environment_variables'].append({'key': k, 'value': v})
+        pass
+#        for k, v in config['envs'].items():
+#            m['environment_variables'].append({'key': k, 'value': v})
         #for k, v in config['secrets'].items():
         #    m['secrets'].append(str(k))
 
