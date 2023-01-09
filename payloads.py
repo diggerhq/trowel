@@ -59,7 +59,6 @@ class Block(BaseModel):
     launch_type: Optional[LaunchTypeEnum]
     environment_variables: Optional[List[EnvironmentVariable]]
     secrets: Optional[Dict[str, str]]
-    secrets_mapping: Optional[List[str]]
     env_mapping: Optional[List[str]]
     task_cpu: Optional[int]
     task_mem: Optional[int]
