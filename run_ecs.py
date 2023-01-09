@@ -15,10 +15,12 @@ with open('./test_configs/digger.json', 'r') as f:
     bundle_spec = json.loads(f.read())
 config.read('./test_configs/digger.ini')
 
+if not 'secrets' in bundle_spec:
+    bundle_spec['secrets'] = []
 for k, v in config['secrets'].items():
-    bundle_spec['secret_keys'].append(str(k))
+    bundle_spec['secrets'].append(str(k))
 
-for m in bundle_spec['modules']:
+for m in bundle_spec['blocks']:
     if m['type'] == 'container':
         for k, v in config['envs'].items():
             m['environment_variables'].append({'key': k, 'value': v})
