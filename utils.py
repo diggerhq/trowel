@@ -304,25 +304,18 @@ def process_terraform_overrides(dest_dir, override_repo_name, override_repo_user
                 shutil.copy2(os.path.join(overrides_dir, f), dest_dir)
 
 
-def process_custom_terraform(dest_dir, custom_terraform: list):
-
+def process_custom_terraform(dest_dir, custom_terraform: str):
     print(f'process_custom_terraform:')
     with tempfile.TemporaryDirectory() as tmp_dir_name:
-
-
-        for ct in custom_terraform:
-            file_name = ct["filename"]
-            content = ct["content"]
-            decoded_content = base64.b64decode(content)
-            with open(os.path.join(dest_dir, file_name), 'wb') as f:
-                f.write(decoded_content)
+        file_name = "overrides.tf"
+        decoded_content = base64.b64decode(custom_terraform)
+        with open(os.path.join(dest_dir, file_name), 'wb') as f:
+            f.write(decoded_content)
 
         # copy generated files from tmp dir to dest_dir
         files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
         for f in files:
             shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
-
-
 
 
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
