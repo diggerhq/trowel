@@ -530,6 +530,11 @@ def generate_terraform_project(terraform_project_dir, config):
             if "secrets" in m:
                 block_secrets[m['name']] = m['secrets']
 
+        if m["type"] == "imported":
+            process_custom_terraform(dest_dir=terraform_dir, custom_terraform=m['custom_terraform'])
+
+
+
     ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
     print(f"ecs_security_groups: {ecs_security_groups}")
     for m in config["blocks"]:

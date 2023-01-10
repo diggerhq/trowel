@@ -11,6 +11,7 @@ class BlockTypeEnum(Enum):
     vpc = "vpc"
     container = "container"
     resource = "resource"
+    imported = "imported"
 
 
 class ResourceTypeEnum(Enum):
@@ -33,7 +34,7 @@ class EnvironmentVariable(BaseModel):
 
 class Block(BaseModel):
     name: str
-    target: str
+    target: Optional[str]
     type: BlockTypeEnum
 
     # vpc
@@ -74,6 +75,10 @@ class Block(BaseModel):
     connection_schema: Optional[str]
     date_created: Optional[str]
 
+    # imported
+    custom_terraform: Optional[str]
+    imported_id: Optional[str]
+
     @root_validator
     def module_has_mandatory_data(cls, values):
         if "type" not in values:
@@ -94,6 +99,7 @@ class Block(BaseModel):
             BlockTypeEnum.vpc: (),
             BlockTypeEnum.container: ("aws_app_identifier",),
             BlockTypeEnum.resource: ("resource_type", "aws_app_identifier",),
+            BlockTypeEnum.imported: ("custom_terraform",),
         }
 
 
