@@ -304,25 +304,18 @@ def process_terraform_overrides(dest_dir, override_repo_name, override_repo_user
                 shutil.copy2(os.path.join(overrides_dir, f), dest_dir)
 
 
-def process_custom_terraform(dest_dir, custom_terraform: list):
-
+def process_custom_terraform(dest_dir, custom_terraform: str):
     print(f'process_custom_terraform:')
     with tempfile.TemporaryDirectory() as tmp_dir_name:
-
-
-        for ct in custom_terraform:
-            file_name = ct["filename"]
-            content = ct["content"]
-            decoded_content = base64.b64decode(content)
-            with open(os.path.join(dest_dir, file_name), 'wb') as f:
-                f.write(decoded_content)
+        file_name = "overrides.tf"
+        decoded_content = base64.b64decode(custom_terraform)
+        with open(os.path.join(dest_dir, file_name), 'wb') as f:
+            f.write(decoded_content)
 
         # copy generated files from tmp dir to dest_dir
         files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
         for f in files:
             shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
-
-
 
 
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
@@ -339,11 +332,6 @@ def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
         terraform_options["environment_variables"] = convert_to_hcl(
             json.dumps(terraform_options["environment_variables"], indent=2)
         )
-    if "secret_keys" in terraform_options:
-        terraform_options["secrets"] = "local.secrets"
-        #    convert_to_hcl(
-        #    json.dumps(terraform_options["secret_keys"], indent=2)
-        #)
 
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
 
@@ -469,7 +457,7 @@ def generate_terraform_project(terraform_project_dir, config):
     datadog_enabled = False
     if 'datadog_enabled' in config and config['datadog_enabled']:
         datadog_enabled = True
-        if not 'secret_keys' in config or not "DATADOG_KEY" in config['secret_keys']:
+        if not 'secrets' in config or not "DATADOG_KEY" in config['secrets']:
             raise ValidationError("If DataDog integration enabled, DATADOG_KEY secret required.")
 
     updated_config = {"blocks": []}
@@ -539,10 +527,12 @@ def generate_terraform_project(terraform_project_dir, config):
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
             updated_config["blocks"].append(m)
 
-            if "secret_keys" in m:
-                block_secrets[m['name']] = m['secret_keys']
         if m["type"] == "imported":
             process_custom_terraform(dest_dir=terraform_dir, custom_terraform=m['custom_terraform'])
+
+        if "secrets" in m:
+            block_secrets[m['name']] = m['secrets']
+
     ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
     print(f"ecs_security_groups: {ecs_security_groups}")
     for m in config["blocks"]:
@@ -633,7 +623,7 @@ def generate_terraform_project(terraform_project_dir, config):
     # process root level terraform templates
     main_tf_options = config
     main_tf_options["network_module_name"] = network_module_name
-    main_tf_options["block_secret_keys"] = block_secrets
+    main_tf_options["block_secrets"] = block_secrets
 
     print(f'main_tf_options: {main_tf_options}')
     process_tf_templates(

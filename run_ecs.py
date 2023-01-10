@@ -15,8 +15,10 @@ with open('./test_configs/test.json', 'r') as f:
     bundle_spec = json.loads(f.read())
 config.read('./test_configs/test.ini')
 
+if not 'secrets' in bundle_spec:
+    bundle_spec['secrets'] = []
 for k, v in config['secrets'].items():
-    bundle_spec['secret_keys'].append(str(k))
+    bundle_spec['secrets'].append(str(k))
 
 for m in bundle_spec['blocks']:
     if m['type'] == 'container':
