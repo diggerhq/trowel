@@ -112,6 +112,10 @@ provider "aws" {
       subnets = {{ block.subnets }}
       vpc_id = module.{{ network_module_name }}.vpc_id
     }
+  {% elif block.type == "imported" %}
+    module "{{ block.name }}" {
+      source = "./{{ block.name }}"
+    }
   {% endif %}
 {% endfor %}
 
