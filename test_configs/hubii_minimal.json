@@ -17,7 +17,7 @@
     },
     {
       "name": "core-service-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
@@ -56,7 +56,8 @@
       ],
       "secrets": {
         "DB_PASSWORD": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/db_password",
-        "JWT_SECRET": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/core-service/jwt_secret"
+        "JWT_SECRET": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/core-service/jwt_secret",
+        "GOOGLE_MAPS_KEY": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/core-service/google_maps_key"
       },
       "secrets_mapping": [
         "DATABASE_URL:database_url_ssm_arn"
@@ -67,7 +68,7 @@
     },
     {
       "name": "godmode-react-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "task_cpu": 2048,
       "task_memory": 4096,
@@ -83,11 +84,11 @@
       "environment_variables": [
         {
           "key": "NEXT_PUBLIC_CORE_SERVICE",
-          "value": "http://core-service-1035014459.us-east-1.elb.amazonaws.com"
+          "value": "http://core-service-244174806.us-east-1.elb.amazonaws.com"
         },
         {
           "key": "NEXT_PUBLIC_CORE_SERVICE_TOKEN",
-          "value": "token"
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjb3JlLXNlcnZpY2UiLCJzdWIiOiJodWItcm91dGVyIiwidHlwZSI6InNlcnZpY2UiLCJpYXQiOjE1NjcxNjc1MzZ9.EqDHF12U3_1gBr28H0sJXmhNMx9td-F1-8FVJwMqX8Q"
         },
         {
           "key": "NEXT_PUBLIC_CUSTOMER_SERVICE",
@@ -95,23 +96,23 @@
         },
         {
           "key": "NEXT_PUBLIC_CUSTOMER_SERVICE_TOKEN",
-          "value": "token"
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjdXN0b21lciIsInN1YiI6InN0b3JlX2Zyb250IiwidHlwZSI6InNlcnZpY2UiLCJpYXQiOjE1OTI1MTA3NDd9.TZwXRjr1zYb9F9FV_FN61EhvD3LaE85BuxjK9fVNRhk"
         },
         {
           "key": "NEXT_PUBLIC_ORDER_SERVICE",
-          "value": "http://order-service-302692539.us-east-1.elb.amazonaws.com"
+          "value": "http://order-service-606590112.us-east-1.elb.amazonaws.com"
         },
         {
           "key": "NEXT_PUBLIC_ORDER_SERVICE_TOKEN",
-          "value": "token"
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJvcmRlciIsInN1YiI6ImN1c3RvbWVyIiwidHlwZSI6InNlcnZpY2UiLCJpYXQiOjE1OTI1MTA3NDd9.Ktt3K-zSWyd6lnBLJrklMGmHtINtt2sSunP73FghBt8"
         },
         {
           "key": "NEXT_PUBLIC_PRODUCT_SERVICE",
-          "value": "product-service-2099198766.us-east-1.elb.amazonaws.com"
+          "value": "http://product-service-2098129721.us-east-1.elb.amazonaws.com"
         },
         {
           "key": "NEXT_PUBLIC_PRODUCT_SERVICE_TOKEN",
-          "value": "token"
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwcm9kdWN0Iiwic3ViIjoiY3VzdG9tZXIiLCJ0eXBlIjoic2VydmljZSIsImlhdCI6MTU5MjUxMDc0N30.fCEOGqn5LTWH_-sXlUWQkGkkzUa67welgWOJ0D_P5QE"
         },
         {
           "key": "NEXT_PUBLIC_SUPPLIER_SERVICE",
@@ -120,13 +121,19 @@
         {
           "key": "NEXT_PUBLIC_SUPPLIER_SERVICE_TOKEN",
           "value": "token"
+        },
+        {
+          "key": "NEXT_PUBLIC_HUB_PANEL_CREATE_ACCOUNT",
+          "value": "/criar-conta/1/bem-vindo"
         }
+
+
       ],
       "secrets": {}
     },
     {
       "name": "store-react-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
@@ -150,7 +157,7 @@
     },
     {
       "name": "hub-next-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
@@ -173,7 +180,7 @@
     },
     {
       "name": "order-service-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
@@ -217,7 +224,7 @@
     },
     {
       "name": "customer-service-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
@@ -252,15 +259,32 @@
         {
           "key": "DB_SCHEMA",
           "value": "hubii_staging"
+        },
+        {
+          "key": "ORDER_SERVICE_ENDPOINT",
+          "value": "http://order-service-606590112.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "ORDER_SERVICE_TOKEN",
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJvcmRlciIsInN1YiI6ImN1c3RvbWVyIiwidHlwZSI6InNlcnZpY2UiLCJpYXQiOjE1OTI1MTA3NDd9.Ktt3K-zSWyd6lnBLJrklMGmHtINtt2sSunP73FghBt8"
+        },
+        {
+          "key": "PRODUCT_SERVICE_ENDPOINT",
+          "value": "http://product-service-2098129721.us-east-1.elb.amazonaws.com"
+        },
+        {
+          "key": "PRODUCT_SERVICE_TOKEN",
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwcm9kdWN0Iiwic3ViIjoiY3VzdG9tZXIiLCJ0eXBlIjoic2VydmljZSIsImlhdCI6MTU5MjUxMDc0N30.fCEOGqn5LTWH_-sXlUWQkGkkzUa67welgWOJ0D_P5QE"
         }
       ],
       "secrets": {
-        "DB_PASSWORD": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/db_password"
+        "DB_PASSWORD": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/db_password",
+        "JWT_SECRET": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/customer-router/jwt_secret"
       }
     },
     {
       "name": "hub-service-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
@@ -329,7 +353,7 @@
     },
     {
       "name": "product-service-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
@@ -374,7 +398,7 @@
     },
     {
       "name": "store-router-app",
-      "target": "diggerhq/target-ecs-module@dev-hubii",
+      "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
@@ -446,6 +470,50 @@
       "secrets": {
         "DB_PASSWORD": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/db_password",
         "JWT_SECRET": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/order-service/jwt_secret"
+      }
+    },
+    {
+      "name": "supplier-service-app",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "internal": "false",
+      "container_port": 8080,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "supplier-service",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "environment_variables": [
+        {
+          "key": "DB_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "hubii"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "hubii"
+        },
+        {
+          "key": "APP_DEBUG",
+          "value": "true"
+        },
+        {
+          "key": "DB_CONNECTION",
+          "value": "pgsql"
+        },
+        {
+          "key": "DB_SCHEMA",
+          "value": "hubii_staging"
+        }
+      ],
+      "secrets": {
+        "DB_PASSWORD": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/db_password",
+        "JWT_SECRET": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/supplier-service/jwt_secret"
       }
     },
     {
