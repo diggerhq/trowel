@@ -76,7 +76,7 @@ class Block(BaseModel):
     date_created: Optional[str]
 
     # imported
-    custom_terraform: Optional[List[Dict[str, str]]]
+    custom_terraform: Optional[str]
     imported_id: Optional[str]
 
     @root_validator
