@@ -114,6 +114,8 @@ class PayloadGenerateTerraform(BaseModel):
     for_local_run: Optional[bool]
     aws_region: constr(min_length=1)
     id: constr(min_length=1)
+    datadog_enabled: Optional[bool]
+
     blocks: List[Block]
 
     secret_keys: Optional[List] = []

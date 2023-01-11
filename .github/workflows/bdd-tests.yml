@@ -1,0 +1,29 @@
+name: Unit Tests
+on: [push]
+jobs:
+  bdd-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare repo
+        uses: actions/checkout@master
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Configure Digger Test AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.TEST_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.TEST_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Trowel
+        run: |
+          pip install --upgrade pip
+          pip install poetry
+          poetry install
+
+      - name: Run terraform-compliance
+          bash bdd.bash test_configs/test.json
+          bash bdd.bash test_configs/digger.json
+          bash bdd.bash test_configs/hubii.json
