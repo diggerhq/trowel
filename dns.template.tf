@@ -41,6 +41,10 @@ data "aws_route53_zone" "route53_zone" {
         certificate_arn         = aws_acm_certificate.{{ block.name }}_acm_certificate.arn
         validation_record_fqdns = [for record in aws_route53_record.{{ block.name }}_cert_validation_record : record.fqdn]
       }
+
+      output "{{ block.name | underscorify }}_route53_record_name" {
+        value=aws_route53_record.{{ block.name }}_cname_record.name
+      }
     {% endif %}
   {% endfor %}
 {% endif %}

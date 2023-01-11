@@ -3,6 +3,7 @@
   "for_local_run": true,
   "aws_region": "us-east-1",
   "id": "test-env-id",
+  "hosted_zone_name": "uselemon.cloud",
   "blocks": [
     {
       "name": "hubii",
@@ -17,10 +18,12 @@
     },
     {
       "name": "core-service-app",
+      "subdomain_name": "core-service",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 8080,
       "health_check_matcher": "200-499",
@@ -68,12 +71,14 @@
     },
     {
       "name": "godmode-react-app",
+      "subdomain_name": "godmode",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "task_cpu": 2048,
       "task_memory": 4096,
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 3000,
       "health_check_matcher": "200-499",
@@ -133,10 +138,12 @@
     },
     {
       "name": "store-react-app",
+      "subdomain_name": "store",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 3000,
       "health_check_matcher": "200-499",
@@ -157,10 +164,12 @@
     },
     {
       "name": "hub-next-app",
+      "subdomain_name": "hub",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 3000,
       "health_check_matcher": "200-499",
@@ -180,10 +189,12 @@
     },
     {
       "name": "order-service-app",
+      "subdomain_name": "order-service",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 8080,
       "health_check_matcher": "200-499",
@@ -224,10 +235,12 @@
     },
     {
       "name": "customer-service-app",
+      "subdomain_name": "customer-service",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 8080,
       "health_check_matcher": "200-499",
@@ -262,7 +275,7 @@
         },
         {
           "key": "ORDER_SERVICE_ENDPOINT",
-          "value": "http://order-service-606590112.us-east-1.elb.amazonaws.com"
+          "value": "https://order-service.uselemon.cloud"
         },
         {
           "key": "ORDER_SERVICE_TOKEN",
@@ -270,7 +283,7 @@
         },
         {
           "key": "PRODUCT_SERVICE_ENDPOINT",
-          "value": "http://product-service-2098129721.us-east-1.elb.amazonaws.com"
+          "value": "https://product-service.uselemon.cloud"
         },
         {
           "key": "PRODUCT_SERVICE_TOKEN",
@@ -284,10 +297,12 @@
     },
     {
       "name": "hub-service-app",
+      "subdomain_name": "hub-service",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 8080,
       "health_check_matcher": "200-499",
@@ -302,7 +317,7 @@
         },
         {
           "key": "ORDER_SERVICE_ENDPOINT",
-          "value": "http://order-service-606590112.us-east-1.elb.amazonaws.com"
+          "value": "https://order-service.uselemon.cloud"
         },
         {
           "key": "ORDER_SERVICE_TOKEN",
@@ -310,7 +325,7 @@
         },
         {
           "key": "PRODUCT_SERVICE_ENDPOINT",
-          "value": "http://product-service-2098129721.us-east-1.elb.amazonaws.com"
+          "value": "https://product-service.uselemon.cloud"
         },
         {
           "key": "PRODUCT_SERVICE_TOKEN",
@@ -318,7 +333,7 @@
         },
         {
           "key": "CORE_SERVICE_ENDPOINT",
-          "value": "http://core-service-244174806.us-east-1.elb.amazonaws.com"
+          "value": "https://core-service.uselemon.cloud"
         },
         {
           "key": "CORE_SERVICE_TOKEN",
@@ -353,10 +368,12 @@
     },
     {
       "name": "product-service-app",
+      "subdomain_name": "product-service",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 8080,
       "health_check_matcher": "200-499",
@@ -398,10 +415,12 @@
     },
     {
       "name": "store-router-app",
+      "subdomain_name": "store-router",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 8080,
       "health_check_matcher": "200-499",
@@ -436,7 +455,7 @@
         },
         {
           "key": "PRODUCT_SERVICE_ENDPOINT",
-          "value": "http://product-service-2098129721.us-east-1.elb.amazonaws.com"
+          "value": "https://product-service.uselemon.cloud"
         },
         {
           "key": "PRODUCT_SERVICE_TOKEN",
@@ -444,7 +463,7 @@
         },
         {
           "key": "ORDER_SERVICE_ENDPOINT",
-          "value": "http://order-service-606590112.us-east-1.elb.amazonaws.com"
+          "value": "https://order-service.uselemon.cloud"
         },
         {
           "key": "ORDER_SERVICE_TOKEN",
@@ -452,7 +471,7 @@
         },
         {
           "key": "CORE_SERVICE_ENDPOINT",
-          "value": "http://core-service-244174806.us-east-1.elb.amazonaws.com"
+          "value": "https://core-service.uselemon.cloud"
         },
         {
           "key": "CORE_SERVICE_TOKEN",
@@ -460,7 +479,7 @@
         },
         {
           "key": "CUSTOMER_SERVICE_ENDPOINT",
-          "value": "http://customer-service-18780994.us-east-1.elb.amazonaws.com"
+          "value": "https://customer-services.uselemon.cloud"
         },
         {
           "key": "CUSTOMER_SERVICE_TOKEN",
@@ -474,10 +493,12 @@
     },
     {
       "name": "supplier-service-app",
+      "subdomain_name": "supplier-service",
       "target": "diggerhq/target-ecs-module@dev",
       "type": "container",
       "health_check": "/",
       "load_balancer": true,
+      "enable_https_listener": true,
       "internal": "false",
       "container_port": 8080,
       "health_check_matcher": "200-499",
