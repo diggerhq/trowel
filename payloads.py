@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from pydantic import BaseModel, ValidationError, constr, root_validator, validator
 
@@ -11,6 +11,7 @@ class BlockTypeEnum(Enum):
     vpc = "vpc"
     container = "container"
     resource = "resource"
+    imported = "imported"
 
 
 class ResourceTypeEnum(Enum):
@@ -34,6 +35,7 @@ class EnvironmentVariable(BaseModel):
 class Block(BaseModel):
     name: constr(min_length=1)
     target: constr(min_length=1)
+
     type: BlockTypeEnum
 
     # vpc
@@ -58,10 +60,8 @@ class Block(BaseModel):
     lb_monitoring_enabled: Optional[bool]
     launch_type: Optional[LaunchTypeEnum]
     environment_variables: Optional[List[EnvironmentVariable]]
-    secret_keys: Optional[List[str]]
-    secrets_mapping: Optional[List[str]]
+    secrets: Optional[Dict[str, str]]
     env_mapping: Optional[List[str]]
-    secrets: Optional[List[str]]
     task_cpu: Optional[int]
     task_mem: Optional[int]
 
@@ -76,8 +76,13 @@ class Block(BaseModel):
     connection_schema: Optional[str]
     date_created: Optional[str]
 
+    # imported
+    custom_terraform: Optional[str]
+    imported_id: Optional[str]
+
     @root_validator(pre=True)
     def block_has_mandatory_data(cls, values):
+
         if "type" not in values:
             return values
 

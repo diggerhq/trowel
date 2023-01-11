@@ -3,7 +3,6 @@
   "for_local_run": true,
   "aws_region": "us-east-1",
   "id": "test-env-id",
-  "secret_keys": [],
   "hosted_zone_name": "uselemon.cloud",
   "datadog_enabled": false,
   "blocks": [
@@ -36,7 +35,9 @@
         "key" : "PORT",
         "value" : "8080"
       }],
-      "secrets": [],
+      "secrets": {
+        "test_secret":  "test_arn"
+      },
       "task_cpu": 1024,
       "task_memory": 2048,
       "datadog_enabled": false
@@ -56,7 +57,7 @@
         "key" : "PORT",
         "value" : "8080"
       }],
-      "secrets": []
+      "secrets": {}
     },
     {
       "name": "celery-beat",
@@ -73,7 +74,7 @@
         "key" : "PORT",
         "value" : "8080"
       }],
-      "secrets": []
+      "secrets": {}
     },
     {
       "name": "frontend",
@@ -90,7 +91,7 @@
       "aws_app_identifier": "frontend",
       "monitoring_enabled": true,
       "environment_variables": [],
-      "secrets": [],
+      "secrets": {},
       "task_cpu": 1024,
       "task_memory": 2048
     },

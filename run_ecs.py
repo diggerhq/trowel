@@ -11,14 +11,16 @@ config.optionxform = str
 
 current_dir = os.getcwd()
 
-with open('./test_configs/digger.json', 'r') as f:
+with open('./test_configs/test.json', 'r') as f:
     bundle_spec = json.loads(f.read())
-config.read('./test_configs/digger.ini')
+config.read('./test_configs/test.ini')
 
+if not 'secrets' in bundle_spec:
+    bundle_spec['secrets'] = []
 for k, v in config['secrets'].items():
-    bundle_spec['secret_keys'].append(str(k))
+    bundle_spec['secrets'].append(str(k))
 
-for m in bundle_spec['modules']:
+for m in bundle_spec['blocks']:
     if m['type'] == 'container':
         for k, v in config['envs'].items():
             m['environment_variables'].append({'key': k, 'value': v})
@@ -26,6 +28,6 @@ for m in bundle_spec['modules']:
         #    m['secrets'].append(str(k))
 
 home_path = str(Path.home())
-generate_terraform_project(f"{home_path}/tmp/t", bundle_spec)
-copy_tree(f"{home_path}/tmp/t/terraform", f"{home_path}/tmp/test-digger")
+generate_terraform_project(f"{home_path}/tmp/test-trowel-tf", bundle_spec)
+copy_tree(f"{home_path}/tmp/test-trowel-tf/terraform", f"{home_path}/tmp/test-trowel")
 
