@@ -1,5 +1,5 @@
-{% for module in modules %}
-  output "{{ module.module_name}}" {
-    value = module.{{ module.module_name}}
+{% for block in blocks %}
+  output "{{ block.name}}" {
+    value = module.{{ block.name}}
   }
 {% endfor %}
