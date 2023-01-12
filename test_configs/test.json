@@ -3,7 +3,7 @@
   "for_local_run": true,
   "aws_region": "us-east-1",
   "id": "test-env-id",
-  "custom_terraform": [{"filename": "test.tf", "content":  "cmVzb3VyY2UgIm51bGxfcmVzb3VyY2UiICJjbHVzdGVyIiB7Cn0="}],
+  "custom_terraform": "cmVzb3VyY2UgIm51bGxfcmVzb3VyY2UiICJjbHVzdGVyIiB7Cn0=",
   "blocks": [
     {
       "name": "network-env-test-1",
@@ -24,8 +24,7 @@
       "region": "us-west-1",
       "task_memory": 512,
       "task_cpu": 256,
-      "container_port": 8000,
-      "load_balancer": true,
+      "load_balancer": false,
       "internal": false,
       "health_check": "/",
       "health_check_matcher": "200-499",
@@ -33,7 +32,7 @@
       "aws_app_identifier": "test",
       "monitoring_enabled": true,
       "lb_monitoring_enabled": true,
-      "custom_terraform": [{"filename": "test.tf", "content":  "cmVzb3VyY2UgIm51bGxfcmVzb3VyY2UiICJjbHVzdGVyIiB7Cn0="}]
+      "custom_terraform": "cmVzb3VyY2UgIm51bGxfcmVzb3VyY2UiICJjbHVzdGVyIiB7Cn0="
     }
   ],
   "created": 1671038906711
