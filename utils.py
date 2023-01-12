@@ -529,7 +529,7 @@ def generate_terraform_project(terraform_project_dir, config):
 
             if "secrets" in m:
                 block_secrets[m['name']] = m['secrets']
-            if "custom_terraform" in config:
+            if "custom_terraform" in m:
                 process_custom_terraform(dest_dir=ecs_terraform_dir, custom_terraform=m['custom_terraform'])
 
         if m["type"] == "imported":
