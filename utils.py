@@ -529,6 +529,8 @@ def generate_terraform_project(terraform_project_dir, config):
 
             if "secrets" in m:
                 block_secrets[m['name']] = m['secrets']
+            if "custom_terraform" in config:
+                process_custom_terraform(dest_dir=ecs_terraform_dir, custom_terraform=m['custom_terraform'])
 
         if m["type"] == "imported":
             dest_dir = f"{terraform_dir}/{m['name']}"
@@ -645,9 +647,6 @@ def generate_terraform_project(terraform_project_dir, config):
             override_repo_region=config["override_repo"]["repo_region"],
             override_repo_branch=config["override_repo"].get("repo_branch", None),
         )
-
-    if "custom_terraform" in config:
-        process_custom_terraform(dest_dir=terraform_dir, custom_terraform=config['custom_terraform'])
 
     # zip generated terraform project
     with tempfile.TemporaryDirectory() as tmp_dir_name:
