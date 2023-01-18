@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from typing import List, Optional, Dict
 
-from pydantic import BaseModel, ValidationError, root_validator
+from pydantic import BaseModel, ValidationError, constr, root_validator, validator
 
 from exceptions import PayloadValidationException
 
@@ -28,13 +28,14 @@ class RdsEngineEnum(Enum):
 
 
 class EnvironmentVariable(BaseModel):
-    key: str
+    key: constr(min_length=1)
     value: str
 
 
 class Block(BaseModel):
-    name: str
-    target: Optional[str]
+    name: constr(min_length=1)
+    target: constr(min_length=1)
+
     type: BlockTypeEnum
 
     # vpc
@@ -79,35 +80,47 @@ class Block(BaseModel):
     custom_terraform: Optional[str]
     imported_id: Optional[str]
 
-    @root_validator
-    def module_has_mandatory_data(cls, values):
+    @root_validator(pre=True)
+    def block_has_mandatory_data(cls, values):
+
         if "type" not in values:
             return values
 
-        module_type = values["type"]
+        if "name" not in values:
+            raise ValueError(f"Missing block name")
+
+        block_name = values["type"]
         name = values["name"]
 
-        for required_field in cls.Config.required_by_module[module_type]:
-            if values[required_field] is None:
-                raise ValueError(f"Missing mandatory {required_field} in {name} module")
+        for required_field in cls.Config.required_by_block[block_name]:
+            if values.get(required_field) is None:
+                raise ValueError(f"Missing mandatory {required_field} in {name} block")
 
         return values
 
+    @validator("name")
+    def name_cannot_start_with_number(cls, v):
+        if v[0].isnumeric():
+            raise ValueError("Block name cannot start with number")
+
+        return v
+
     class Config:
-        # Declare which fields are mandatory for given module type
-        required_by_module = {
-            BlockTypeEnum.vpc: (),
-            BlockTypeEnum.container: ("aws_app_identifier",),
-            BlockTypeEnum.resource: ("resource_type", "aws_app_identifier",),
-            BlockTypeEnum.imported: ("custom_terraform",),
+        # Declare which fields are mandatory for given block type
+        required_by_block = {
+            BlockTypeEnum.vpc.value: (),
+            BlockTypeEnum.container.value: ("aws_app_identifier",),
+            BlockTypeEnum.resource.value: ("resource_type", "aws_app_identifier",),
         }
 
 
 class PayloadGenerateTerraform(BaseModel):
-    target: str
+    target: constr(min_length=1)
     for_local_run: Optional[bool]
-    aws_region: str
-    id: str
+    aws_region: constr(min_length=1)
+    id: constr(min_length=1)
+    datadog_enabled: Optional[bool]
+
     blocks: List[Block]
 
     secret_keys: Optional[List] = []

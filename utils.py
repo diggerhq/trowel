@@ -262,8 +262,10 @@ def render_jinja_template(
     print(f'input_file:{input_file},terraform_options:{terraform_options}')
     with open(input_file) as template_file:
         template_content = template_file.read()
+        print(f'template_content: {template_content}')
         template = Template(template_content)
         template_rendered = template.render(terraform_options)
+        print(f'template_rendered: {template_rendered}')
         template_rendered = strip_new_lines(template_rendered)
 
     # skip empty files
@@ -529,6 +531,8 @@ def generate_terraform_project(terraform_project_dir, config):
 
             if "secrets" in m:
                 block_secrets[m['name']] = m['secrets']
+            if "custom_terraform" in m:
+                process_custom_terraform(dest_dir=ecs_terraform_dir, custom_terraform=m['custom_terraform'])
 
         if m["type"] == "imported":
             dest_dir = f"{terraform_dir}/{m['name']}"
@@ -645,9 +649,6 @@ def generate_terraform_project(terraform_project_dir, config):
             override_repo_region=config["override_repo"]["repo_region"],
             override_repo_branch=config["override_repo"].get("repo_branch", None),
         )
-
-    if "custom_terraform" in config:
-        process_custom_terraform(dest_dir=terraform_dir, custom_terraform=config['custom_terraform'])
 
     # zip generated terraform project
     with tempfile.TemporaryDirectory() as tmp_dir_name:
