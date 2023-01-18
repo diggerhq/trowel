@@ -31,8 +31,8 @@ provider "aws" {
       {{ "task_cpu=" + block.task_cpu | lower if block.task_cpu is defined else '' }}
       {{ "task_memory=" + block.task_memory | lower if block.task_memory is defined else '' }}
       {{ "internal=" + block.internal | lower if block.internal is defined else '' }}
-      {{ "health_check=" + block.health_check | lower if block.health_check is defined else '' }}
-      {{ "health_check_matcher=" + block.health_check_matcher | lower if block.health_check_matcher is defined else '' }}
+      {{ "health_check=\"" + block.health_check + "\"" | lower if block.health_check is defined else '' }}
+      {{ "health_check_matcher=\"" + block.health_check_matcher + "\"" | lower if block.health_check_matcher is defined else '' }}
       {{ 'environment_variables=' + block.environment_variables if block.environment_variables is defined  else '' }}
       {{ 'secrets=local.' + block.name | underscorify + '_secrets' if block.secrets is defined and block.secrets | length > 0  else '' }}
 
