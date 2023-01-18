@@ -262,8 +262,10 @@ def render_jinja_template(
     print(f'input_file:{input_file},terraform_options:{terraform_options}')
     with open(input_file) as template_file:
         template_content = template_file.read()
+        print(f'template_content: {template_content}')
         template = Template(template_content)
         template_rendered = template.render(terraform_options)
+        print(f'template_rendered: {template_rendered}')
         template_rendered = strip_new_lines(template_rendered)
 
     # skip empty files
