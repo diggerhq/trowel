@@ -36,6 +36,9 @@ provider "aws" {
       {{ 'environment_variables=' + block.environment_variables if block.environment_variables is defined  else '' }}
       {{ 'secrets=local.' + block.name | underscorify + '_secrets' if block.secrets is defined and block.secrets | length > 0  else '' }}
 
+      {{ 'ecs_autoscale_min_instances=' + block.ecs_autoscale_min_instances if block.ecs_autoscale_min_instances is defined  else '' }}
+      {{ 'ecs_autoscale_max_instances=' + block.ecs_autoscale_max_instances if block.ecs_autoscale_max_instances is defined  else '' }}
+
       {{ "datadog_key_ssm_arn=aws_ssm_parameter.datadog_key.arn" if block.datadog_enabled is defined else '' }}
 
       region = "{{ aws_region }}"
