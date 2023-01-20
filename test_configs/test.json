@@ -4,6 +4,7 @@
   "aws_region": "us-east-1",
   "id": "test-env-id",
   "custom_terraform": "cmVzb3VyY2UgIm51bGxfcmVzb3VyY2UiICJjbHVzdGVyIiB7Cn0=",
+
   "blocks": [
     {
       "name": "network-env-test-1",
@@ -33,6 +34,7 @@
       "monitoring_enabled": true,
       "lb_monitoring_enabled": true,
       "custom_terraform": "cmVzb3VyY2UgIm51bGxfcmVzb3VyY2UiICJjbHVzdGVyIiB7Cn0="
+
     }
   ],
   "created": 1671038906711
