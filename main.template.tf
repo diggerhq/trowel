@@ -27,7 +27,7 @@ provider "aws" {
         lb_ssl_certificate_arn=aws_acm_certificate.{{ block.name }}_acm_certificate.arn
       {% endif %}
 
-      {{ "certificate_arn=" + block.certificate_arn | lower if block.certificate_arn is defined else '' }}
+      {{ "certificate_arn=\"" + block.certificate_arn + "\"" | lower if block.certificate_arn is defined else '' }}
 
       {{ "container_port=" + block.container_port | lower if block.container_port is defined else '' }}
       {{ "task_cpu=" + block.task_cpu | lower if block.task_cpu is defined else '' }}

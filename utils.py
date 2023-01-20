@@ -45,28 +45,6 @@ def run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir):
             shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
 
 
-
-def process_overrides(repo_link, repo_username, repo_password, dest_dir):
-    with tempfile.TemporaryDirectory() as tmp_dir_name:
-        clone_public_github_repo(repo, repo_branch, tmp_dir_name)
-        jinja_template_files = [
-            f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.template\..", f)
-        ]
-        jinja_templates = []
-        for j in jinja_template_files:
-            jinja_templates.append((j, j.replace(".template", "")))
-        for t in jinja_templates:
-            jinja_template = f"{tmp_dir_name}/{t[0]}"
-            jinja_result = f"{tmp_dir_name}/{t[1]}"
-            render_jinja_template(terraform_options, jinja_template, jinja_result, True)
-        format_generated_terraform(tmp_dir_name)
-
-        # copy generated files from tmp dir to dest_dir
-        files = [f for f in os.listdir(tmp_dir_name) if re.match(r"^.*\.tf", f)]
-        for f in files:
-            shutil.copy2(os.path.join(tmp_dir_name, f), dest_dir)
-
-
 def generate_ecs_task_execution_policy(
     path, s3_bucket_arn_list, ssm_list, sqs_arn_list, datadog_enabled
 ):
@@ -262,10 +240,8 @@ def render_jinja_template(
     print(f'input_file:{input_file},terraform_options:{terraform_options}')
     with open(input_file) as template_file:
         template_content = template_file.read()
-        print(f'template_content: {template_content}')
         template = Template(template_content)
         template_rendered = template.render(terraform_options)
-        print(f'template_rendered: {template_rendered}')
         template_rendered = strip_new_lines(template_rendered)
 
     # skip empty files
