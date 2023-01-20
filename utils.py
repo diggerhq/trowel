@@ -9,7 +9,12 @@ from urllib.parse import quote
 from jinja2 import Template
 from jinja2.filters import FILTERS
 
-from exceptions import PayloadValidationException, GitHubError, TerraformFormatError, ValidationError
+from exceptions import (
+    PayloadValidationException,
+    GitHubError,
+    TerraformFormatError,
+    ValidationError,
+)
 
 
 def add_debug_info(dest_dir, terraform_options):
@@ -96,9 +101,7 @@ def generate_ecs_task_execution_policy(
             "Sid": "DataDogFireHose",
             "Effect": "Allow",
             "Action": "firehose:PutRecordBatch",
-            "Resource": [
-                "*"
-            ],
+            "Resource": ["*"],
         }
         result["Statement"].append(datadog_statement)
 
@@ -170,9 +173,11 @@ def clone_public_github_repo(repo, ref, path="."):
         raise GitHubError(f"Failed to clone {repo}, branch: {ref}")
 
 
-def clone_codecommit_repo(repo, repo_user, repo_password, repo_region="us-east-2", ref=None, path="."):
+def clone_codecommit_repo(
+    repo, repo_user, repo_password, repo_region="us-east-2", ref=None, path="."
+):
     print(f"clone_codecommit_repo: {repo}")
-    repo_password = quote(repo_password, safe='')
+    repo_password = quote(repo_password, safe="")
     url = f"https://{repo_user}:{repo_password}@git-codecommit.{repo_region}.amazonaws.com/v1/repos/{repo}"
     try:
         if ref is None:
@@ -223,11 +228,11 @@ def convert_to_hcl(t):
 
 
 def dashify(value, attribute=None):
-    return str(value).replace('_', '-')
+    return str(value).replace("_", "-")
 
 
 def underscorify(value, attribute=None):
-    return str(value).replace('-', '_')
+    return str(value).replace("-", "_")
 
 
 FILTERS["dashify"] = dashify
@@ -237,7 +242,7 @@ FILTERS["underscorify"] = underscorify
 def render_jinja_template(
     terraform_options, input_file, output_file, delete_original=False
 ):
-    print(f'input_file:{input_file},terraform_options:{terraform_options}')
+    print(f"input_file:{input_file},terraform_options:{terraform_options}")
     with open(input_file) as template_file:
         template_content = template_file.read()
         template = Template(template_content)
@@ -269,10 +274,24 @@ def process(dest_dir, repo, repo_branch, module_name, templates, terraform_optio
     terraform_format(dest_jinja_dir)
 
 
-def process_terraform_overrides(dest_dir, override_repo_name, override_repo_username, override_repo_password, override_repo_region, override_repo_branch=None):
+def process_terraform_overrides(
+    dest_dir,
+    override_repo_name,
+    override_repo_username,
+    override_repo_password,
+    override_repo_region,
+    override_repo_branch=None,
+):
     with tempfile.TemporaryDirectory() as tmp_dir_name:
         overrides_dir = os.path.join(tmp_dir_name, "overrides")
-        clone_codecommit_repo(override_repo_name, override_repo_username, override_repo_password, override_repo_region, ref=override_repo_branch, path=tmp_dir_name)
+        clone_codecommit_repo(
+            override_repo_name,
+            override_repo_username,
+            override_repo_password,
+            override_repo_region,
+            ref=override_repo_branch,
+            path=tmp_dir_name,
+        )
 
         # copy files from overrides dir if it does exist
         if os.path.exists(overrides_dir):
@@ -283,11 +302,11 @@ def process_terraform_overrides(dest_dir, override_repo_name, override_repo_user
 
 
 def process_custom_terraform(dest_dir, custom_terraform: str):
-    print(f'process_custom_terraform:')
+    print(f"process_custom_terraform:")
     with tempfile.TemporaryDirectory() as tmp_dir_name:
         file_name = "overrides.tf"
         decoded_content = base64.b64decode(custom_terraform)
-        with open(os.path.join(dest_dir, file_name), 'wb') as f:
+        with open(os.path.join(dest_dir, file_name), "wb") as f:
             f.write(decoded_content)
 
         # copy generated files from tmp dir to dest_dir
@@ -335,7 +354,9 @@ def process_sqs_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
         add_debug_info(dest_dir, terraform_options)
 
 
-def process_api_gateway_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
+def process_api_gateway_module(
+    dest_dir, terraform_options, repo, repo_branch, debug=False
+):
     recreate_dir(dest_dir)
 
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
@@ -356,10 +377,15 @@ def process_resource_module(
 
 
 def process_tf_templates(dest_dir, terraform_options, debug=False):
-    templates = ['main.template.tf', 'ssm.template.tf', 'dns.template.tf', 'outputs.template.tf',]
+    templates = [
+        "main.template.tf",
+        "ssm.template.tf",
+        "dns.template.tf",
+        "outputs.template.tf",
+    ]
     for t in templates:
         jinja_template = t
-        r = t.replace('.template', '')
+        r = t.replace(".template", "")
         jinja_result = f"{dest_dir}/{r}"
         render_jinja_template(terraform_options, jinja_template, jinja_result, False)
         format_generated_terraform(dest_dir)
@@ -369,11 +395,11 @@ def process_tf_templates(dest_dir, terraform_options, debug=False):
 
 
 def process_static_files(dest_dir):
-    shutil.copytree('./staticfiles/', f'{dest_dir}/', dirs_exist_ok=True)
+    shutil.copytree("./staticfiles/", f"{dest_dir}/", dirs_exist_ok=True)
 
 
 def process_env_file(dest_dir, env_id):
-    with open(f'{dest_dir}/.digger', 'w') as f:
+    with open(f"{dest_dir}/.digger", "w") as f:
         f.write(f"ENVIRONMENT_ID={env_id}")
 
 
@@ -422,7 +448,7 @@ def generate_terraform_project(terraform_project_dir, config):
         raise PayloadValidationException(
             '"id" key is missing in provided configuration.'
         )
-    environment_id = config['id']
+    environment_id = config["id"]
     terraform_dir = f"{terraform_project_dir}/terraform"
 
     if os.path.isdir(terraform_dir):
@@ -433,10 +459,12 @@ def generate_terraform_project(terraform_project_dir, config):
     block_secrets = {}
 
     datadog_enabled = False
-    if 'datadog_enabled' in config and config['datadog_enabled']:
+    if "datadog_enabled" in config and config["datadog_enabled"]:
         datadog_enabled = True
-        if not 'secrets' in config or not "DATADOG_KEY" in config['secrets']:
-            raise ValidationError("If DataDog integration enabled, DATADOG_KEY secret required.")
+        if not "secrets" in config or not "DATADOG_KEY" in config["secrets"]:
+            raise ValidationError(
+                "If DataDog integration enabled, DATADOG_KEY secret required."
+            )
 
     updated_config = {"blocks": []}
 
@@ -461,20 +489,20 @@ def generate_terraform_project(terraform_project_dir, config):
             ecs_security_groups_list.append(
                 f"module.{m['name']}.ecs_task_security_group_id"
             )
-            
+
             ecs_terraform_dir = f"{terraform_dir}/{m['name']}"
             repo, branch = parse_module_target(m["target"])
-            #repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
-            #branch = 'dev'
+            # repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
+            # branch = 'dev'
             public_subnets_ids = f"module.{network_module_name}.public_subnets"
             private_subnets_ids = f"module.{network_module_name}.private_subnets"
 
             internal = False
-            if 'internal' in m:
+            if "internal" in m:
                 internal_value = m["internal"]
                 if isinstance(internal_value, bool):
                     internal = internal_value
-                elif isinstance(internal_value, str) and internal_value == 'true':
+                elif isinstance(internal_value, str) and internal_value == "true":
                     internal = True
 
             if internal:
@@ -500,20 +528,24 @@ def generate_terraform_project(terraform_project_dir, config):
                 s3_bucket_arn_list=[],
                 ssm_list=["*"],
                 sqs_arn_list=[],
-                datadog_enabled=datadog_enabled
+                datadog_enabled=datadog_enabled,
             )
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
             updated_config["blocks"].append(m)
 
             if "secrets" in m:
-                block_secrets[m['name']] = m['secrets']
+                block_secrets[m["name"]] = m["secrets"]
             if "custom_terraform" in m:
-                process_custom_terraform(dest_dir=ecs_terraform_dir, custom_terraform=m['custom_terraform'])
+                process_custom_terraform(
+                    dest_dir=ecs_terraform_dir, custom_terraform=m["custom_terraform"]
+                )
 
         if m["type"] == "imported":
             dest_dir = f"{terraform_dir}/{m['name']}"
             recreate_dir(dest_dir)
-            process_custom_terraform(dest_dir=dest_dir, custom_terraform=m['custom_terraform'])
+            process_custom_terraform(
+                dest_dir=dest_dir, custom_terraform=m["custom_terraform"]
+            )
 
     ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
     print(f"ecs_security_groups: {ecs_security_groups}")
@@ -521,9 +553,9 @@ def generate_terraform_project(terraform_project_dir, config):
         if m["type"] == "resource":
             repo, branch = parse_module_target(m["target"])
 
-            if m['resource_type'] == "database":
-                repo = 'target-rds-module'  # todo repo, branch hardcoded for now
-                branch = 'dev'
+            if m["resource_type"] == "database":
+                repo = "target-rds-module"  # todo repo, branch hardcoded for now
+                branch = "dev"
                 public_subnets_ids = f"module.{network_module_name}.public_subnets"
                 private_subnets_ids = f"module.{network_module_name}.private_subnets"
 
@@ -532,21 +564,21 @@ def generate_terraform_project(terraform_project_dir, config):
                 else:
                     m["subnets"] = private_subnets_ids
 
-            elif m['resource_type'] == "redis":
-                repo = 'target-elasticache-module'  # todo repo, branch hardcoded for now
-                branch = 'main'
+            elif m["resource_type"] == "redis":
+                repo = (
+                    "target-elasticache-module"  # todo repo, branch hardcoded for now
+                )
+                branch = "main"
                 private_subnets_ids = f"module.{network_module_name}.private_subnets"
                 m["private_subnets_ids"] = private_subnets_ids
-            elif m['resource_type'] == "docdb":
-                repo = 'target-docdb-module'  # todo repo, branch hardcoded for now
-                branch = 'main'
+            elif m["resource_type"] == "docdb":
+                repo = "target-docdb-module"  # todo repo, branch hardcoded for now
+                branch = "main"
                 private_subnets_ids = f"module.{network_module_name}.private_subnets"
                 m["private_subnets_ids"] = private_subnets_ids
-
 
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             m["security_groups"] = ecs_security_groups
-
 
             terraform_options = m  # todo: move to a separate dict
 
@@ -564,7 +596,7 @@ def generate_terraform_project(terraform_project_dir, config):
             repo, branch = parse_module_target(m["target"])
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             subnets = f"module.{network_module_name}.public_subnets"
-            m['subnets'] = subnets
+            m["subnets"] = subnets
             terraform_options = m  # todo: move to a separate dict
 
             process_api_gateway_module(
@@ -607,7 +639,7 @@ def generate_terraform_project(terraform_project_dir, config):
     main_tf_options["network_module_name"] = network_module_name
     main_tf_options["block_secrets"] = block_secrets
 
-    print(f'main_tf_options: {main_tf_options}')
+    print(f"main_tf_options: {main_tf_options}")
     process_tf_templates(
         dest_dir=terraform_dir,
         terraform_options=main_tf_options,
@@ -636,9 +668,11 @@ def generate_terraform_project(terraform_project_dir, config):
         try:
             os.chdir(terraform_dir)
             shutil.make_archive(
-                base_name=f'{tmp_dir_name}/{name}', format=extension, root_dir=terraform_dir
+                base_name=f"{tmp_dir_name}/{name}",
+                format=extension,
+                root_dir=terraform_dir,
             )
-            #shutil.move(f"{current_dir}/{name}.{extension}", tmp_dir_name)
+            # shutil.move(f"{current_dir}/{name}.{extension}", tmp_dir_name)
         finally:
             os.chdir(current_dir)
 
