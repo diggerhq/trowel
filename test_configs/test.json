@@ -16,7 +16,7 @@
       "enable_nat_gateway": true
     },
     {
-      "name": "99d98a74-3f4d-438a-983f-c1dea5a90cc8",
+      "name": "webapp",
       "type": "container",
       "target": "diggerhq/target-ecs-module@dev",
       "provider": "AWS",
@@ -31,7 +31,8 @@
       "launch_type": "FARGATE",
       "aws_app_identifier": "test",
       "monitoring_enabled": true,
-      "lb_monitoring_enabled": true
+      "lb_monitoring_enabled": true,
+      "custom_terraform":  "cmVzb3VyY2UgIm51bGxfcmVzb3VyY2UiICJjbHVzdGVyIiB7Cn0="
     }
   ],
   "created": 1671038906711

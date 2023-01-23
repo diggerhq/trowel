@@ -4,7 +4,7 @@
   "aws_region": "us-east-1",
   "id": "test-env-id",
   "hosted_zone_name": "uselemon.cloud",
-  "datadog_enabled": true,
+  "datadog_enabled": false,
   "blocks": [
     {
       "name": "digger-vpc",
@@ -40,7 +40,7 @@
       },
       "task_cpu": 1024,
       "task_memory": 2048,
-      "datadog_enabled": true
+      "datadog_enabled": false
     },
     {
       "name": "celery-worker",

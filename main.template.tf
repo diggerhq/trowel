@@ -27,12 +27,19 @@ provider "aws" {
         lb_ssl_certificate_arn=aws_acm_certificate.{{ block.name }}_acm_certificate.arn
       {% endif %}
 
+      {{ "lb_ssl_certificate_arn=\"" + block.certificate_arn + "\"" | lower if block.certificate_arn is defined else '' }}
+
       {{ "container_port=" + block.container_port | lower if block.container_port is defined else '' }}
       {{ "task_cpu=" + block.task_cpu | lower if block.task_cpu is defined else '' }}
       {{ "task_memory=" + block.task_memory | lower if block.task_memory is defined else '' }}
       {{ "internal=" + block.internal | lower if block.internal is defined else '' }}
+      {{ "health_check=\"" + block.health_check + "\"" | lower if block.health_check is defined else '' }}
+      {{ "health_check_matcher=\"" + block.health_check_matcher + "\"" | lower if block.health_check_matcher is defined else '' }}
       {{ 'environment_variables=' + block.environment_variables if block.environment_variables is defined  else '' }}
       {{ 'secrets=local.' + block.name | underscorify + '_secrets' if block.secrets is defined and block.secrets | length > 0  else '' }}
+
+      {{ 'ecs_autoscale_min_instances=' + block.ecs_autoscale_min_instances if block.ecs_autoscale_min_instances is defined  else '' }}
+      {{ 'ecs_autoscale_max_instances=' + block.ecs_autoscale_max_instances if block.ecs_autoscale_max_instances is defined  else '' }}
 
       {{ "datadog_key_ssm_arn=aws_ssm_parameter.datadog_key.arn" if block.datadog_enabled is defined else '' }}
 
@@ -111,6 +118,10 @@ provider "aws" {
       source = "./{{ block.name }}"
       subnets = {{ block.subnets }}
       vpc_id = module.{{ network_module_name }}.vpc_id
+    }
+  {% elif block.type == "imported" %}
+    module "{{ block.name }}" {
+      source = "./{{ block.name }}"
     }
   {% endif %}
 {% endfor %}
