@@ -182,7 +182,11 @@
       "environment_variables": [
         {
           "key": "REACT_APP_HUB_SERVICE",
-          "value": "http://hub-service-1650252928.us-east-1.elb.amazonaws.com"
+          "value": "https://hub-service.uselemon.cloud"
+        },
+        {
+          "key": "REACT_APP_NOTIFICATION_SERVICE",
+          "value": "https://notifications-service.uselemon.cloud"
         }
       ],
       "secrets": {}
@@ -535,6 +539,89 @@
       "secrets": {
         "DB_PASSWORD": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/db_password",
         "JWT_SECRET": "arn:aws:ssm:us-east-1:209539466991:parameter/test-env-id/supplier-service/jwt_secret"
+      }
+    },
+    {
+      "name": "notifications-service",
+      "subdomain_name": "notifications-service",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "enable_https_listener": true,
+      "internal": "false",
+      "container_port": 3000,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "notifications-service",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "task_cpu": 1024,
+      "task_memory": 2048,
+      "environment_variables": [
+        {
+          "key": "HOST",
+          "value": "0.0.0.0"
+        },
+        {
+          "key": "PG_HOST",
+          "value": "hubii-db.ctx0gix1bhgt.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "key": "PG_PORT",
+          "value": "5432"
+        },
+        {
+          "key": "PG_USER",
+          "value": "push_notifications_user"
+        },
+        {
+          "key": "PG_DB_NAME",
+          "value": "push_notifications"
+        },
+        {
+          "key": "DB_SCHEMA",
+          "value": "push_develop"
+        },
+        {
+          "key": "DB_CONNECTION",
+          "value": "pg"
+        },
+        {
+          "key": "SESSION_DRIVER",
+          "value": "cookie"
+        },
+        {
+          "key": "DRIVE_DISK",
+          "value": "local"
+        },
+         {
+          "key": "HASH_DRIVER",
+          "value": "bcrypt"
+        },
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "key": "CACHE_VIEWS",
+          "value": "false"
+        },
+        {
+          "key": "APP_KEY",
+          "value": "1I5b-5N6fHBujpyPXzSOmEhFEzV16XoG"
+        },
+        {
+          "key": "HUB_SERVICE_ENDPOINT",
+          "value": "https://hub-service.uselemon.cloud/"
+        },
+        {
+          "key": "HUB_SERVICE_TOKEN",
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzaGFyZWQiLCJzdWIiOiIxYmYzNjI1Mi02NDBkLTQ2OTctOTMxNS0yNTVlMWNhZTBiNGQiLCJ0eXBlIjoidXNlciIsImlhdCI6MTY1ODc3NjM3OX0.97wqErPzjAGhahM8f9cApsTb9NKEshsDQDemaveZGqk"
+        }
+      ],
+      "secrets": {
+        "PG_PASSWORD": "arn:aws:ssm:us-east-1:209539466991:parameter/hubii-db/notifications/db_password"
       }
     },
     {
