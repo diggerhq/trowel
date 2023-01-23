@@ -617,7 +617,7 @@
         },
         {
           "key": "HUB_SERVICE_TOKEN",
-          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzaGFyZWQiLCJzdWIiOiIxYmYzNjI1Mi02NDBkLTQ2OTctOTMxNS0yNTVlMWNhZTBiNGQiLCJ0eXBlIjoidXNlciIsImlhdCI6MTY1ODc3NjM3OX0.97wqErPzjAGhahM8f9cApsTb9NKEshsDQDemaveZGqk"
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodWItc2VydmljZSIsInN1YiI6InB1c2gtbm90aWZpY2F0aW9uIiwidHlwZSI6InNlcnZpY2UiLCJpYXQiOjE1OTI1MTA3NDd9.kYk_aHB0LjAQrtDAqtedZ0t2XyPanfVpVsqP9SYkBNk"
         }
       ],
       "secrets": {
