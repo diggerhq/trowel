@@ -96,22 +96,20 @@ class TestPayloadGenerateTerraforms:
             }
         )
 
-    @pytest.mark.parametrize("missing_field", ())
-    def test_missing_mandatory_field_in_vpc(self, missing_field):
+
+    def test_missing_mandatory_field_in_vpc(self):
+        # mandatory block name is missing
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
             "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [
                 {
-                    "name": "network-env-test-1",
                     "target": "diggerhq/target-network-module@main",
                     "type": "vpc",
                 },
             ],
         }
-
-        del payload["blocks"][0][missing_field]
 
         with pytest.raises(ValidationError) as exinfo:
             PayloadGenerateTerraform.parse_obj(payload)
@@ -119,7 +117,7 @@ class TestPayloadGenerateTerraforms:
         assert json.loads(exinfo.value.json()) == [
             {
                 "loc": ["blocks", 0, "__root__"],
-                "msg": f"Missing mandatory {missing_field} in network-env-test-1 block",
+                "msg": f"Missing block name",
                 "type": "value_error",
             }
         ]
@@ -148,7 +146,7 @@ class TestPayloadGenerateTerraforms:
         assert json.loads(exinfo.value.json()) == [
             {
                 "loc": ["blocks", 0, "__root__"],
-                "msg": f"Missing mandatory {missing_field} in core-service-app block",
+                "msg": f"Missing mandatory '{missing_field}' parameter in 'core-service-app' block",
                 "type": "value_error",
             }
         ]
@@ -178,7 +176,7 @@ class TestPayloadGenerateTerraforms:
         assert json.loads(exinfo.value.json()) == [
             {
                 "loc": ["blocks", 0, "__root__"],
-                "msg": f"Missing mandatory {missing_field} in hubii-db block",
+                "msg": f"Missing mandatory '{missing_field}' parameter in 'hubii-db' block",
                 "type": "value_error",
             }
         ]
@@ -200,3 +198,72 @@ class TestPayloadGenerateTerraforms:
                     ],
                 }
             )
+
+
+
+    def test_load_balancer_disabled(self):
+        with pytest.raises(ValidationError):
+            assert PayloadGenerateTerraform.parse_obj(
+                {
+                    "target": "diggerhq/tf-module-bundler@master",
+                    "aws_region": "us-east-1",
+                    "id": "test-env-id",
+                    "blocks": [
+                        {
+                            "name": "myapp",
+                            "target": "diggerhq/target-network-module@main",
+                            "type": "vpc",
+                            "load_balancer": False,
+                            "container_port": "8000"
+                        },
+                    ],
+                }
+            )
+
+    def test_redis_mandatory_parameters(self):
+        PayloadGenerateTerraform.parse_obj(
+            {
+                "target": "diggerhq/tf-module-bundler@master",
+                "aws_region": "us-east-1",
+                "id": "test-env-id",
+                "blocks": [
+                    {
+                        "name": "myapp",
+                        "target": "diggerhq/target-network-module@main",
+                        "type": "resource",
+                        "aws_app_identifier": "redis",
+                        "resource_type": "redis",
+                        "redis_engine_version": "14"
+                    },
+                ],
+            }
+        )
+
+
+    @pytest.mark.parametrize("missing_field", ("redis_engine_version",))
+    def test_missing_mandatory_field_in_redis_resource(self, missing_field):
+        payload = {
+            "target": "diggerhq/tf-module-bundler@master",
+            "aws_region": "us-east-1",
+            "id": "test-env-id",
+            "blocks": [
+                {
+                    "name": "my-redis",
+                    "target": "diggerhq/target-resource-module@main",
+                    "type": "resource",
+                    "aws_app_identifier": "my-redis",
+                    "resource_type": "redis",
+                },
+            ],
+        }
+
+        with pytest.raises(ValidationError) as exinfo:
+            PayloadGenerateTerraform.parse_obj(payload)
+
+        assert json.loads(exinfo.value.json()) == [
+            {
+                "loc": ["blocks", 0, "__root__"],
+                "msg": f"Missing mandatory '{missing_field}' parameter in 'my-redis' block",
+                "type": "value_error",
+            }
+        ]
