@@ -14,6 +14,7 @@ class GitHubError(LambdaError):
 class TerraformFormatError(LambdaError):
     pass
 
+
 class ValidationError(LambdaError):
     pass
 

@@ -322,18 +322,79 @@ def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
         add_debug_info(dest_dir, terraform_options)
 
 
-def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
+def process_ecs_module(dest_dir, block_options, repo, repo_branch, debug=False):
     recreate_dir(dest_dir)
 
-    if "environment_variables" in terraform_options:
-        terraform_options["environment_variables"] = convert_to_hcl(
-            json.dumps(terraform_options["environment_variables"], indent=2)
+    if "environment_variables" in block_options:
+        block_options["environment_variables"] = convert_to_hcl(
+            json.dumps(block_options["environment_variables"], indent=2)
         )
 
-    run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
+    no = get_block_options_hcl(block_options)
+    block_options["hcl"] = no
+
+    run_jinja_for_dir(repo, repo_branch, block_options, dest_dir)
 
     if debug:
-        add_debug_info(dest_dir, terraform_options)
+        add_debug_info(dest_dir, block_options)
+
+
+def get_block_options_hcl(terraform_options: dict):
+    """
+    This function is a replacement for rendering block options in jinja template
+    it takes the dictionary of all parameters and convert them into hcl
+    """
+    to = terraform_options.copy()
+    new_options = {}
+
+    new_options["source"] = f"\"./{to['name']}\""
+
+    new_options["vpc_id"] = f"module.{to['network_module_name']}.vpc_id"
+    new_options["ecs_cluster_name"] = f"\"{to['aws_app_identifier']}\""
+    new_options["ecs_service_name"] = f"\"{to['aws_app_identifier']}\""
+    new_options["tags"] = f"{{digger_identifier=\"{to['aws_app_identifier']}\"}}"
+
+    new_options["alb_subnet_ids"] = to["alb_subnet_ids"]
+    new_options["ecs_subnet_ids"] = to["ecs_subnet_ids"]
+
+    if (
+        "enable_https_listener" in terraform_options
+        and terraform_options["enable_https_listener"]
+        and "subdomain_name" in terraform_options
+        and to["subdomain_name"]
+    ):
+        new_options[
+            "lb_ssl_certificate_arn"
+        ] = f"aws_acm_certificate.{{ {to['name']} }}_acm_certificate.arn"
+
+    if "certificate_arn" in to and to["certificate_arn"]:
+        new_options["lb_ssl_certificate_arn"] = f"\"{to['certificate_arn']}\""
+
+    to.pop("name")
+    to.pop("provider")
+    to.pop("aws_app_identifier")
+    to.pop("alb_subnet_ids")
+    to.pop("ecs_subnet_ids")
+
+    if "enable_https_listener" in to:
+        to.pop("enable_https_listener")
+    if "subdomain_name" in to:
+        to.pop("subdomain_name")
+    if "certificate_arn" in to:
+        to.pop("certificate_arn")
+
+    for k, v in to.items():
+        if isinstance(v, bool):
+            new_options[k] = str(v).lower()
+        elif isinstance(v, int):
+            new_options[k] = v
+        else:
+            new_options[k] = f'"{v}"'
+
+    result = ""
+    for k, v in new_options.items():
+        result += f"{k}={v}\n"
+    return result
 
 
 def process_s3_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
@@ -467,6 +528,8 @@ def generate_terraform_project(terraform_project_dir, config):
             )
 
     updated_config = {"blocks": []}
+    if "network_module_name" in config:
+        raise ValidationError('"network_module_name" is reserved for internal use.')
 
     for m in config["blocks"]:
         if m["type"] == "vpc":
@@ -483,6 +546,8 @@ def generate_terraform_project(terraform_project_dir, config):
                 debug=debug,
             )
             updated_config["blocks"].append(m)
+
+    config["network_module_name"] = network_module_name
 
     for m in config["blocks"]:
         if m["type"] == "container":
@@ -514,11 +579,15 @@ def generate_terraform_project(terraform_project_dir, config):
             else:
                 m["alb_subnet_ids"] = public_subnets_ids
 
-            terraform_options = m  # todo: move to a separate dict
+            # copy root's parameter 'network_module_name' into block's options
+            if network_module_name:
+                m["network_module_name"] = network_module_name
+
+            block_options = m  # todo: move to a separate dict
 
             process_ecs_module(
                 dest_dir=ecs_terraform_dir,
-                terraform_options=terraform_options,
+                block_options=block_options,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
@@ -636,8 +705,6 @@ def generate_terraform_project(terraform_project_dir, config):
 
     # process root level terraform templates
     main_tf_options = config
-    main_tf_options["network_module_name"] = network_module_name
-    main_tf_options["block_secrets"] = block_secrets
 
     print(f"main_tf_options: {main_tf_options}")
     process_tf_templates(
