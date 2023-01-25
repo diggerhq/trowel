@@ -18,7 +18,7 @@ provider "aws" {
         digger_identifier = "{{block.name}}"
       }
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "container" %}
@@ -55,7 +55,7 @@ provider "aws" {
         digger_identifier = "{{block.aws_app_identifier}}"
       }
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "resource" and block.resource_type == "database" %}
@@ -83,7 +83,7 @@ provider "aws" {
         digger_identifier = "{{block.aws_app_identifier}}"
       }
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "resource" and block.resource_type == "redis" %}
@@ -102,7 +102,7 @@ provider "aws" {
         digger_identifier = "{{block.aws_app_identifier}}"
       }
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
     {% elif block.type == "resource" and block.resource_type == "docdb" %}
@@ -121,21 +121,21 @@ provider "aws" {
         digger_identifier = "{{block.aws_app_identifier}}"
       }
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "s3" %}
     module "{{ block.name }}" {
       source = "./{{ block.name }}"
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "sqs" %}
     module "{{ block.name }}" {
       source = "./{{ block.name }}"
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "api-gateway" %}
@@ -144,14 +144,14 @@ provider "aws" {
       subnets = {{ block.subnets }}
       vpc_id = module.{{ network_module_name }}.vpc_id
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "imported" %}
     module "{{ block.name }}" {
       source = "./{{ block.name }}"
       providers = {
-        aws = aws."{{ block.region }}"
+        aws = aws.{{ block.region }}
       }
     }
   {% endif %}
