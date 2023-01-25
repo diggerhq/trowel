@@ -1,17 +1,24 @@
+{% for region in regions %}
 provider "aws" {
   region = "{{ aws_region }}"
+  alias  = "{{ aws_region }}"
 }
+{% endfor %}
+
 
 {% for block in blocks %}
   {% if block.type == "vpc" %}
     module "{{ block.name}}" {
       source = "./{{ block.name }}"
       network_name = "{{block.name}}"
-      region = "{{ aws_region }}"
+      region = "{{ block.region }}"
       {{ "enable_nat_gateway=" + block.enable_nat_gateway | lower if block.enable_nat_gateway is defined else '' }}
       {{ "one_nat_gateway_per_az=" + block.one_nat_gateway_per_az | lower if block.one_nat_gateway_per_az is defined else '' }}
       tags = {
         digger_identifier = "{{block.name}}"
+      }
+      providers = {
+        aws = aws."{{ block.region }}"
       }
     }
   {% elif block.type == "container" %}
@@ -43,9 +50,12 @@ provider "aws" {
 
       {{ "datadog_key_ssm_arn=aws_ssm_parameter.datadog_key.arn" if block.datadog_enabled is defined else '' }}
 
-      region = "{{ aws_region }}"
+      region = "{{ block.region }}"
       tags = {
         digger_identifier = "{{block.aws_app_identifier}}"
+      }
+      providers = {
+        aws = aws."{{ block.region }}"
       }
     }
   {% elif block.type == "resource" and block.resource_type == "database" %}
@@ -72,6 +82,9 @@ provider "aws" {
       tags = {
         digger_identifier = "{{block.aws_app_identifier}}"
       }
+      providers = {
+        aws = aws."{{ block.region }}"
+      }
     }
   {% elif block.type == "resource" and block.resource_type == "redis" %}
     module "{{ block.name }}" {
@@ -87,6 +100,9 @@ provider "aws" {
       {{ 'security_groups=' + block.security_groups if block.security_groups is defined  else '' }}
       tags = {
         digger_identifier = "{{block.aws_app_identifier}}"
+      }
+      providers = {
+        aws = aws."{{ block.region }}"
       }
     }
     {% elif block.type == "resource" and block.resource_type == "docdb" %}
@@ -104,24 +120,39 @@ provider "aws" {
       tags = {
         digger_identifier = "{{block.aws_app_identifier}}"
       }
+      providers = {
+        aws = aws."{{ block.region }}"
+      }
     }
   {% elif block.type == "s3" %}
     module "{{ block.name }}" {
       source = "./{{ block.name }}"
+      providers = {
+        aws = aws."{{ block.region }}"
+      }
     }
   {% elif block.type == "sqs" %}
     module "{{ block.name }}" {
       source = "./{{ block.name }}"
+      providers = {
+        aws = aws."{{ block.region }}"
+      }
     }
   {% elif block.type == "api-gateway" %}
     module "{{ block.name }}" {
       source = "./{{ block.name }}"
       subnets = {{ block.subnets }}
       vpc_id = module.{{ network_module_name }}.vpc_id
+      providers = {
+        aws = aws."{{ block.region }}"
+      }
     }
   {% elif block.type == "imported" %}
     module "{{ block.name }}" {
       source = "./{{ block.name }}"
+      providers = {
+        aws = aws."{{ block.region }}"
+      }
     }
   {% endif %}
 {% endfor %}

@@ -638,6 +638,7 @@ def generate_terraform_project(terraform_project_dir, config):
     main_tf_options = config
     main_tf_options["network_module_name"] = network_module_name
     main_tf_options["block_secrets"] = block_secrets
+    main_tf_options["regions"] = set([c["region"] for c in config["blocks"]])
 
     print(f"main_tf_options: {main_tf_options}")
     process_tf_templates(
