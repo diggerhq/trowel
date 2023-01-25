@@ -94,7 +94,7 @@ class Block(BaseModel):
 
         for required_field in cls.Config.required_by_block[block_name]:
             if values.get(required_field) is None:
-                raise ValueError(f"Missing mandatory {required_field} in {name} block")
+                raise ValueError(f"Missing mandatory '{required_field}' parameter in '{name}' block")
 
         return values
 
@@ -105,12 +105,35 @@ class Block(BaseModel):
 
         return v
 
+    @root_validator(pre=True)
+    def load_balancer_disabled(cls, values):
+        if "load_balancer" in values and not values["load_balancer"]:
+            if "container_port" in values:
+                raise ValueError("If load_balance=False, container_port parameter can't be used.")
+        return values
+
+    @root_validator(pre=True)
+    def redis_mandatory_parameters(cls, values):
+        print(f'redis_mandatory_parameters: {values}')
+        if (
+            "type" in values
+            and values["type"] == "resource"
+            and "resource_type" in values
+            and values["resource_type"] == "redis"
+        ):
+            if "redis_engine_version" not in values:
+                raise ValueError(f"Missing mandatory 'redis_engine_version' parameter in '{values['name']}' block")
+        return values
+
     class Config:
         # Declare which fields are mandatory for given block type
         required_by_block = {
             BlockTypeEnum.vpc.value: (),
             BlockTypeEnum.container.value: ("aws_app_identifier",),
-            BlockTypeEnum.resource.value: ("resource_type", "aws_app_identifier",),
+            BlockTypeEnum.resource.value: (
+                "resource_type",
+                "aws_app_identifier",
+            ),
         }
 
 
