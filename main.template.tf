@@ -8,7 +8,7 @@ provider "aws" {
 
 {% for block in blocks %}
   {% if block.type == "vpc" %}
-    module "{{ block.name}}" {
+    module "{{ block.name}}_{{block.region}}" {
       source = "./{{ block.name }}"
       network_name = "{{block.name}}"
       region = "{{ block.region }}"
@@ -22,7 +22,7 @@ provider "aws" {
       }
     }
   {% elif block.type == "container" %}
-    module "{{ block.name }}" {
+    module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       vpc_id = module.{{ network_module_name }}.vpc_id
       ecs_cluster_name = "{{block.aws_app_identifier}}"
@@ -59,7 +59,7 @@ provider "aws" {
       }
     }
   {% elif block.type == "resource" and block.resource_type == "database" %}
-    module "{{ block.name }}" {
+    module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       vpc_id = module.{{ network_module_name }}.vpc_id
       identifier = "{{block.aws_app_identifier}}"
@@ -87,7 +87,7 @@ provider "aws" {
       }
     }
   {% elif block.type == "resource" and block.resource_type == "redis" %}
-    module "{{ block.name }}" {
+    module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       vpc_id = module.{{ network_module_name }}.vpc_id
       cluster_id = "{{block.aws_app_identifier}}"
@@ -106,7 +106,7 @@ provider "aws" {
       }
     }
     {% elif block.type == "resource" and block.resource_type == "docdb" %}
-    module "{{ block.name }}" {
+    module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       vpc_id = module.{{ network_module_name }}.vpc_id
       cluster_identifier = "{{block.aws_app_identifier}}"
@@ -125,21 +125,21 @@ provider "aws" {
       }
     }
   {% elif block.type == "s3" %}
-    module "{{ block.name }}" {
+    module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       providers = {
         aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "sqs" %}
-    module "{{ block.name }}" {
+    module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       providers = {
         aws = aws.{{ block.region }}
       }
     }
   {% elif block.type == "api-gateway" %}
-    module "{{ block.name }}" {
+    module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       subnets = {{ block.subnets }}
       vpc_id = module.{{ network_module_name }}.vpc_id
@@ -148,7 +148,7 @@ provider "aws" {
       }
     }
   {% elif block.type == "imported" %}
-    module "{{ block.name }}" {
+    module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       providers = {
         aws = aws.{{ block.region }}
