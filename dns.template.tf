@@ -12,7 +12,7 @@ data "aws_route53_zone" "route53_zone" {
         name    = "{{ block.subdomain_name }}.{{ hosted_zone_name }}"
         type    = "CNAME"
         ttl     = "60"
-        records = [module.{{ block.name }}.lb_dns]
+        records = [module.{{ block.name }}_{{block.region}}.lb_dns]
       }
 
       resource "aws_acm_certificate" "{{ block.name }}_acm_certificate" {

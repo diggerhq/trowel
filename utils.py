@@ -487,15 +487,15 @@ def generate_terraform_project(terraform_project_dir, config):
     for m in config["blocks"]:
         if m["type"] == "container":
             ecs_security_groups_list.append(
-                f"module.{m['name']}.ecs_task_security_group_id"
+                f"module.{m['name']}_{m['region']}.ecs_task_security_group_id"
             )
 
             ecs_terraform_dir = f"{terraform_dir}/{m['name']}"
             repo, branch = parse_module_target(m["target"])
             # repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
             # branch = 'dev'
-            public_subnets_ids = f"module.{network_module_name}.public_subnets"
-            private_subnets_ids = f"module.{network_module_name}.private_subnets"
+            public_subnets_ids = f"module.{network_module_name}_{m['region']}.public_subnets"
+            private_subnets_ids = f"module.{network_module_name}_{m['region']}.private_subnets"
 
             internal = False
             if "internal" in m:
@@ -556,8 +556,8 @@ def generate_terraform_project(terraform_project_dir, config):
             if m["resource_type"] == "database":
                 repo = "target-rds-module"  # todo repo, branch hardcoded for now
                 branch = "dev"
-                public_subnets_ids = f"module.{network_module_name}.public_subnets"
-                private_subnets_ids = f"module.{network_module_name}.private_subnets"
+                public_subnets_ids = f"module.{network_module_name}_{m['region']}.public_subnets"
+                private_subnets_ids = f"module.{network_module_name}_{m['region']}.private_subnets"
 
                 if "publicly_accessible" in m and m["publicly_accessible"]:
                     m["subnets"] = public_subnets_ids
@@ -569,12 +569,12 @@ def generate_terraform_project(terraform_project_dir, config):
                     "target-elasticache-module"  # todo repo, branch hardcoded for now
                 )
                 branch = "main"
-                private_subnets_ids = f"module.{network_module_name}.private_subnets"
+                private_subnets_ids = f"module.{network_module_name}_{m['region']}.private_subnets"
                 m["private_subnets_ids"] = private_subnets_ids
             elif m["resource_type"] == "docdb":
                 repo = "target-docdb-module"  # todo repo, branch hardcoded for now
                 branch = "main"
-                private_subnets_ids = f"module.{network_module_name}.private_subnets"
+                private_subnets_ids = f"module.{network_module_name}_{m['region']}.private_subnets"
                 m["private_subnets_ids"] = private_subnets_ids
 
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
@@ -595,7 +595,7 @@ def generate_terraform_project(terraform_project_dir, config):
         if m["type"] == "api-gateway":
             repo, branch = parse_module_target(m["target"])
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
-            subnets = f"module.{network_module_name}.public_subnets"
+            subnets = f"module.{network_module_name}_{m['region']}.public_subnets"
             m["subnets"] = subnets
             terraform_options = m  # todo: move to a separate dict
 

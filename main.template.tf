@@ -24,7 +24,7 @@ provider "aws" {
   {% elif block.type == "container" %}
     module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
-      vpc_id = module.{{ network_module_name }}.vpc_id
+      vpc_id = module.{{ network_module_name }}_{{block.region}}.vpc_id
       ecs_cluster_name = "{{block.aws_app_identifier}}"
       ecs_service_name = "{{block.aws_app_identifier}}"
       alb_subnet_ids = {{block.alb_subnet_ids}}
@@ -61,7 +61,7 @@ provider "aws" {
   {% elif block.type == "resource" and block.resource_type == "database" %}
     module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
-      vpc_id = module.{{ network_module_name }}.vpc_id
+      vpc_id = module.{{ network_module_name }}_{{block.region}}.vpc_id
       identifier = "{{block.aws_app_identifier}}"
       aws_app_identifier = "{{block.aws_app_identifier}}"
       subnets = {{block.subnets}}
@@ -89,7 +89,7 @@ provider "aws" {
   {% elif block.type == "resource" and block.resource_type == "redis" %}
     module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
-      vpc_id = module.{{ network_module_name }}.vpc_id
+      vpc_id = module.{{ network_module_name }}_{{block.region}}.vpc_id
       cluster_id = "{{block.aws_app_identifier}}"
       private_subnets = {{block.private_subnets_ids}}
       cluster_description = "{{block.aws_app_identifier}}"
@@ -108,7 +108,7 @@ provider "aws" {
     {% elif block.type == "resource" and block.resource_type == "docdb" %}
     module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
-      vpc_id = module.{{ network_module_name }}.vpc_id
+      vpc_id = module.{{ network_module_name }}_{{block.region}}.vpc_id
       cluster_identifier = "{{block.aws_app_identifier}}"
       private_subnets = {{block.private_subnets_ids}}
 
@@ -142,7 +142,7 @@ provider "aws" {
     module "{{ block.name }}_{{block.region}}" {
       source = "./{{ block.name }}"
       subnets = {{ block.subnets }}
-      vpc_id = module.{{ network_module_name }}.vpc_id
+      vpc_id = module.{{ network_module_name }}_{{block.region}}.vpc_id
       providers = {
         aws = aws.{{ block.region }}
       }
