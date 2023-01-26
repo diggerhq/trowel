@@ -18,6 +18,7 @@
         {% if routing.routing_type == 'latency' %}
         latency_routing_policy {
           region = "{{ routing.region }}"
+          set_identifier = "Latency policy for {{ routing.region }}"
         }
         {% endif %}
         records = [module.{{ addon.block_name }}_{{routing.region}}.lb_dns]
