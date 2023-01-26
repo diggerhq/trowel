@@ -20,7 +20,7 @@
           region = "{{ routing.region }}"
         }
         {% endif %}
-        records = [module.{{ block_name }}_{{routing.region}}.lb_dns]
+        records = [module.{{ addon.block_name }}_{{routing.region}}.lb_dns]
       }
 
       resource "aws_acm_certificate" "{{ addon.block_name }}_{{ routing.region }}_acm_certificate" {
