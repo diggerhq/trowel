@@ -1,28 +1,40 @@
+{% for addon in addons  %}
+  {% if addon.type == "routing" %}
+    data "aws_route53_zone" "route53_zone" {
+      name         = "{{ addon.domain_name }}"
+      private_zone = false
+    }
 
-{% if hosted_zone_name is defined %}
-data "aws_route53_zone" "route53_zone" {
-  name         = "{{ hosted_zone_name }}"
-  private_zone = false
-}
-
-  {% for block in blocks %}
-    {% if block.type == "container" and block.subdomain_name is defined %}
-      resource "aws_route53_record" "{{ block.name }}_cname_record" {
+    {% for routing in addon.routings %}
+      resource "aws_route53_record" "{{ addon.block_name }}_{{ routing.region }}_cname_record" {
         zone_id = data.aws_route53_zone.route53_zone.id
-        name    = "{{ block.subdomain_name }}.{{ hosted_zone_name }}"
+        {% if routing.subdomain %}
+          name    = "{{ routing.subdomain }}.{{ addon.domain_name }}"
+        {% else %}
+          name    = "{{ addon.domain_name }}"
+        {% endif %}
         type    = "CNAME"
         ttl     = "60"
-        records = [module.{{ block.name }}_{{block.region}}.lb_dns]
+        {% if routing.routing_type == 'latency' %}
+        latency_routing_policy {
+          region = "{{ routing.region }}"
+        }
+        {% endif %}
+        records = [module.{{ block_name }}_{{routing.region}}.lb_dns]
       }
 
-      resource "aws_acm_certificate" "{{ block.name }}_acm_certificate" {
-        domain_name       = "{{ block.subdomain_name }}.{{ hosted_zone_name }}"
+      resource "aws_acm_certificate" "{{ addon.block_name }}_{{ routing.region }}_acm_certificate" {
+        {% if routing.subdomain %}
+          domain_name    = "{{ routing.subdomain }}.{{ addon.domain_name }}"
+        {% else %}
+          domain_name    = "{{ addon.domain_name }}"
+        {% endif %}
         validation_method = "DNS"
       }
 
-      resource "aws_route53_record" "{{ block.name }}_cert_validation_record" {
+      resource "aws_route53_record" "{{ addon.block_name }}_{{ routing.region }}_cert_validation_record" {
         for_each = {
-          for dvo in aws_acm_certificate.{{ block.name }}_acm_certificate.domain_validation_options : dvo.domain_name => {
+          for dvo in aws_acm_certificate.{{ addon.block_name }}_{{ routing.region }}_acm_certificate.domain_validation_options : dvo.domain_name => {
             name   = dvo.resource_record_name
             record = dvo.resource_record_value
             type   = dvo.resource_record_type
@@ -37,10 +49,10 @@ data "aws_route53_zone" "route53_zone" {
         zone_id         = data.aws_route53_zone.route53_zone.zone_id
       }
 
-      resource "aws_acm_certificate_validation" "{{ block.name }}_acm_cert_validation" {
-        certificate_arn         = aws_acm_certificate.{{ block.name }}_acm_certificate.arn
-        validation_record_fqdns = [for record in aws_route53_record.{{ block.name }}_cert_validation_record : record.fqdn]
+      resource "aws_acm_certificate_validation" "{{ addon.block_name }}_{{ routing.region }}_acm_cert_validation" {
+        certificate_arn         = aws_acm_certificate.{{ addon.block_name }}_{{ routing.region }}_acm_certificate.arn
+        validation_record_fqdns = [for record in aws_route53_record.{{ addon.block_name }}_{{ routing.region }}_cert_validation_record : record.fqdn]
       }
-    {% endif %}
-  {% endfor %}
-{% endif %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
