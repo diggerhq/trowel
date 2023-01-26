@@ -15,9 +15,9 @@ class TestPayloadGenerateTerraforms:
             {
                 "target": "diggerhq/tf-module-bundler@master",
                 "for_local_run": True,
-                "aws_region": "us-east-1",
                 "id": "test-env-id",
                 "blocks": [],
+                "addons": [],
             }
         )
 

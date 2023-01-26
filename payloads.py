@@ -36,11 +36,14 @@ class Routing(BaseModel):
     region: constr(min_length=1)
     routing_type: constr(min_length=1)
     subdomain: Optional[str]
+
+
 class Addon(BaseModel):
     block_name: str
     type: str
     domain_name: str
     routing: List[Routing]
+
 
 class Block(BaseModel):
     name: constr(min_length=1)
@@ -154,7 +157,7 @@ class PayloadGenerateTerraform(BaseModel):
     datadog_enabled: Optional[bool]
 
     blocks: List[Block]
-    addons: List[Addon]
+    addons: Optional[List[Addon]]
 
     secret_keys: Optional[List] = []
     hosted_zone_name: Optional[str]
