@@ -22,7 +22,7 @@ class TestPayloadGenerateTerraforms:
         )
 
     @pytest.mark.parametrize(
-        "missing_field", ["target", "aws_region", "id", "blocks"],
+        "missing_field", ["target", "id", "blocks"],
     )
     def test_missing_root_level_field(self, missing_field):
         payload = {
@@ -49,7 +49,6 @@ class TestPayloadGenerateTerraforms:
         assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
-                "aws_region": "us-east-1",
                 "id": "test-env-id",
                 "blocks": [
                     {
@@ -65,7 +64,6 @@ class TestPayloadGenerateTerraforms:
         assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
-                "aws_region": "us-east-1",
                 "id": "test-env-id",
                 "blocks": [
                     {
@@ -82,7 +80,6 @@ class TestPayloadGenerateTerraforms:
         assert PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
-                "aws_region": "us-east-1",
                 "id": "test-env-id",
                 "blocks": [
                     {
@@ -101,7 +98,6 @@ class TestPayloadGenerateTerraforms:
         # mandatory block name is missing
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
-            "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [
                 {
@@ -126,7 +122,6 @@ class TestPayloadGenerateTerraforms:
     def test_missing_mandatory_field_in_container(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
-            "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [
                 {
@@ -155,7 +150,6 @@ class TestPayloadGenerateTerraforms:
     def test_missing_mandatory_field_in_resource(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
-            "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [
                 {
@@ -187,7 +181,6 @@ class TestPayloadGenerateTerraforms:
             assert PayloadGenerateTerraform.parse_obj(
                 {
                     "target": "diggerhq/tf-module-bundler@master",
-                    "aws_region": "us-east-1",
                     "id": "test-env-id",
                     "blocks": [
                         {
@@ -206,7 +199,6 @@ class TestPayloadGenerateTerraforms:
             assert PayloadGenerateTerraform.parse_obj(
                 {
                     "target": "diggerhq/tf-module-bundler@master",
-                    "aws_region": "us-east-1",
                     "id": "test-env-id",
                     "blocks": [
                         {
@@ -224,7 +216,6 @@ class TestPayloadGenerateTerraforms:
         PayloadGenerateTerraform.parse_obj(
             {
                 "target": "diggerhq/tf-module-bundler@master",
-                "aws_region": "us-east-1",
                 "id": "test-env-id",
                 "blocks": [
                     {
@@ -244,7 +235,6 @@ class TestPayloadGenerateTerraforms:
     def test_missing_mandatory_field_in_redis_resource(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
-            "aws_region": "us-east-1",
             "id": "test-env-id",
             "blocks": [
                 {
