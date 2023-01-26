@@ -32,6 +32,16 @@ class EnvironmentVariable(BaseModel):
     value: str
 
 
+class Routing(BaseModel):
+    region: constr(min_length=1)
+    routing_type: constr(min_length=1)
+    subdomain: Optional[str]
+class Addon(BaseModel):
+    block_name: str
+    type: str
+    domain_name: str
+    routing: List[Routing]
+
 class Block(BaseModel):
     name: constr(min_length=1)
     target: constr(min_length=1)
@@ -140,11 +150,11 @@ class Block(BaseModel):
 class PayloadGenerateTerraform(BaseModel):
     target: constr(min_length=1)
     for_local_run: Optional[bool]
-    aws_region: constr(min_length=1)
     id: constr(min_length=1)
     datadog_enabled: Optional[bool]
 
     blocks: List[Block]
+    addons: List[Addon]
 
     secret_keys: Optional[List] = []
     hosted_zone_name: Optional[str]
