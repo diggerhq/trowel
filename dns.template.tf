@@ -6,7 +6,7 @@
     }
 
     {% for routing in addon.routings %}
-      resource "aws_route53_record" "{{ addon.block_name }}_{{ routing.region }}_cname_record" {
+      resource "aws_route53_record" "{{ addon.block_name }}_{{ routing.region }}_a_record" {
         zone_id = data.aws_route53_zone.route53_zone.id
         {% if routing.subdomain %}
           name    = "{{ routing.subdomain }}.{{ addon.domain_name }}"
