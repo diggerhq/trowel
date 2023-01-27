@@ -14,14 +14,17 @@
           name    = "{{ addon.domain_name }}"
         {% endif %}
         type    = "A"
-        ttl     = "60"
+        alias {
+            name                   = module.{{ addon.block_name }}_{{routing.region}}.lb_dns
+            zone_id                = module.{{ addon.block_name }}_{{routing.region}}.lb_zone_id
+            evaluate_target_health = false
+        }
         {% if routing.routing_type == 'latency' %}
         set_identifier = "Latency policy for {{ routing.region }}"
         latency_routing_policy {
           region = "{{ routing.region }}"
         }
         {% endif %}
-        records = [module.{{ addon.block_name }}_{{routing.region}}.lb_dns]
       }
 
       resource "aws_acm_certificate" "{{ addon.block_name }}_{{ routing.region }}_acm_certificate" {
