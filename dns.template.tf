@@ -16,9 +16,9 @@
         type    = "CNAME"
         ttl     = "60"
         {% if routing.routing_type == 'latency' %}
+        set_identifier = "Latency policy for {{ routing.region }}"
         latency_routing_policy {
           region = "{{ routing.region }}"
-          set_identifier = "Latency policy for {{ routing.region }}"
         }
         {% endif %}
         records = [module.{{ addon.block_name }}_{{routing.region}}.lb_dns]
