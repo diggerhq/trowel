@@ -13,7 +13,7 @@
         {% else %}
           name    = "{{ addon.domain_name }}"
         {% endif %}
-        type    = "CNAME"
+        type    = "A"
         ttl     = "60"
         {% if routing.routing_type == 'latency' %}
         set_identifier = "Latency policy for {{ routing.region }}"
