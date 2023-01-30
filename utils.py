@@ -393,7 +393,7 @@ def process_tf_templates(dest_dir, terraform_options, debug=False):
         region = terraform_options["aws_region"]
 
         backend_options = {
-            "bucket": f"digger-terraform-remote-state",
+            "bucket": f"digger-terraform-state",
             "key": bundle_id,
             "region": region,
             "dynamodb_table": "digger-terraform-state-lock",
