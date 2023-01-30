@@ -393,10 +393,10 @@ def process_tf_templates(dest_dir, terraform_options, debug=False):
         region = terraform_options["aws_region"]
 
         backend_options = {
-            "bucket": f"terraform-remote-state",
+            "bucket": f"digger-terraform-remote-state",
             "key": bundle_id,
             "region": region,
-            "dynamodb_table": "terraform-state-lock",
+            "dynamodb_table": "digger-terraform-state-lock",
         }
         jinja_template = "backend.template.tf"
         jinja_result = f"{dest_dir}/backend.tf"
