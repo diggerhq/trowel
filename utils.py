@@ -383,6 +383,25 @@ def process_tf_templates(dest_dir, terraform_options, debug=False):
         "dns.template.tf",
         "outputs.template.tf",
     ]
+
+    # process backend.tf separately
+    if (
+        "remote_state" not in terraform_options
+        or terraform_options["remote_state"] != "local"
+    ):
+        bundle_id = terraform_options["id"]
+        region = terraform_options["aws_region"]
+
+        backend_options = {
+            "bucket": f"digger-terraform-state",
+            "key": bundle_id,
+            "region": region,
+            "dynamodb_table": "digger-terraform-state-lock",
+        }
+        jinja_template = "backend.template.tf"
+        jinja_result = f"{dest_dir}/backend.tf"
+        render_jinja_template(backend_options, jinja_template, jinja_result, False)
+
     for t in templates:
         jinja_template = t
         r = t.replace(".template", "")
