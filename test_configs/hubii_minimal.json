@@ -625,6 +625,26 @@
       }
     },
     {
+      "name": "osrm",
+      "subdomain_name": "osrm",
+      "target": "diggerhq/target-ecs-module@dev",
+      "type": "container",
+      "health_check": "/",
+      "load_balancer": true,
+      "enable_https_listener": true,
+      "internal": "false",
+      "container_port": 5000,
+      "health_check_matcher": "200-499",
+      "launch_type": "FARGATE",
+      "aws_app_identifier": "osrm",
+      "monitoring_enabled": true,
+      "lb_monitoring_enabled": true,
+      "task_cpu": 1024,
+      "task_memory": 2048,
+      "environment_variables": [],
+      "secrets": { }
+    },
+    {
       "id": "db_id_hubii",
       "rds_engine": "postgres",
       "rds_engine_version": "14.0",
