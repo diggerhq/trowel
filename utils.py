@@ -391,13 +391,17 @@ def process_tf_templates(dest_dir, terraform_options, debug=False):
     ):
         bundle_id = terraform_options["id"]
         region = terraform_options["aws_region"]
+        aws_account_id = ''
+        if 'aws_account_id' in terraform_options:
+            aws_account_id = '-' + terraform_options['aws_account_id']
 
         backend_options = {
-            "bucket": f"digger-terraform-state",
+            "bucket": f"digger-terraform-state"+ aws_account_id,
             "key": bundle_id,
             "region": region,
             "dynamodb_table": "digger-terraform-state-lock",
         }
+
         jinja_template = "backend.template.tf"
         jinja_result = f"{dest_dir}/backend.tf"
         render_jinja_template(backend_options, jinja_template, jinja_result, False)
