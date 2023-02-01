@@ -1,4 +1,4 @@
-{% for region in regions %}
+{% for region in aws_regions %}
 provider "aws" {
   region = "{{ region }}"
   alias  = "{{ region }}"

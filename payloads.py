@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, ValidationError, constr, root_validator, validator
 
@@ -92,6 +92,7 @@ class Block(BaseModel):
     # imported
     custom_terraform: Optional[str]
     imported_id: Optional[str]
+    aws_regions: Optional[List[Dict[Any, Any]]]
 
     @root_validator(pre=True)
     def block_has_mandatory_data(cls, values):

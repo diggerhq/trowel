@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from copy import deepcopy
 from urllib.parse import quote
 from jinja2 import Template
 from jinja2.filters import FILTERS
@@ -423,6 +424,22 @@ def parse_module_target(target):
         raise PayloadValidationException(f"Target {target} is in a wrong format.")
 
 
+def explode_regional_blocks_with_overrides(config):
+    aws_regions = set()
+    regional_blocks = []
+    for block in config["blocks"]:
+        block_copy = deepcopy(block)
+        for region, config_overrides in block["aws_regions"].items():
+            for k, v in config_overrides["configs"].items():
+                block_copy[k] = v
+            block_copy["region"] = region
+            regional_blocks.append(block)
+            aws_regions.add(region)
+        del block_copy["aws_regions"]
+    config["blocks"] = regional_blocks
+    config["aws_regions"] = list(aws_regions)
+
+
 def generate_terraform_project(terraform_project_dir, config):
     """
     generates terraform project for specified options in config and return it as base64 encoded zip file in
@@ -466,7 +483,16 @@ def generate_terraform_project(terraform_project_dir, config):
                 "If DataDog integration enabled, DATADOG_KEY secret required."
             )
 
-    updated_config = {"blocks": []}
+    explode_regional_blocks_with_overrides(config)
+
+    for m in config["blocks"]:
+        if m["type"] == "container":
+            ecs_security_groups_list.append(
+                f"module.{m['name']}_{m['region']}.ecs_task_security_group_id"
+            )
+
+    ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
+    print(f"ecs_security_groups: {ecs_security_groups}")
 
     for m in config["blocks"]:
         if m["type"] == "vpc":
@@ -482,14 +508,7 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["blocks"].append(m)
-
-    for m in config["blocks"]:
-        if m["type"] == "container":
-            ecs_security_groups_list.append(
-                f"module.{m['name']}_{m['region']}.ecs_task_security_group_id"
-            )
-
+        elif m["type"] == "container":
             ecs_terraform_dir = f"{terraform_dir}/{m['name']}"
             repo, branch = parse_module_target(m["target"])
             # repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
@@ -531,7 +550,6 @@ def generate_terraform_project(terraform_project_dir, config):
                 datadog_enabled=datadog_enabled,
             )
             generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
-            updated_config["blocks"].append(m)
 
             if "secrets" in m:
                 block_secrets[m["name"]] = m["secrets"]
@@ -540,17 +558,13 @@ def generate_terraform_project(terraform_project_dir, config):
                     dest_dir=ecs_terraform_dir, custom_terraform=m["custom_terraform"]
                 )
 
-        if m["type"] == "imported":
+        elif m["type"] == "imported":
             dest_dir = f"{terraform_dir}/{m['name']}"
             recreate_dir(dest_dir)
             process_custom_terraform(
                 dest_dir=dest_dir, custom_terraform=m["custom_terraform"]
             )
-
-    ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
-    print(f"ecs_security_groups: {ecs_security_groups}")
-    for m in config["blocks"]:
-        if m["type"] == "resource":
+        elif m["type"] == "resource":
             repo, branch = parse_module_target(m["target"])
 
             if m["resource_type"] == "database":
@@ -589,10 +603,7 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["blocks"].append(m)
-
-    for m in config["blocks"]:
-        if m["type"] == "api-gateway":
+        elif m["type"] == "api-gateway":
             repo, branch = parse_module_target(m["target"])
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             subnets = f"module.{network_module_name}_{m['region']}.public_subnets"
@@ -606,9 +617,8 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["blocks"].append(m)
 
-        if m["type"] == "sqs":
+        elif m["type"] == "sqs":
             repo, branch = parse_module_target(m["target"])
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             terraform_options = m  # todo: move to a separate dict
@@ -620,8 +630,7 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["blocks"].append(m)
-        if m["type"] == "s3":
+        elif m["type"] == "s3":
             repo, branch = parse_module_target(m["target"])
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             terraform_options = m  # todo: move to a separate dict
@@ -632,13 +641,12 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-            updated_config["blocks"].append(m)
 
     # process root level terraform templates
     main_tf_options = config
     main_tf_options["network_module_name"] = network_module_name
     main_tf_options["block_secrets"] = block_secrets
-    main_tf_options["regions"] = set([c["region"] for c in config["blocks"]])
+
 
     print(f"main_tf_options: {main_tf_options}")
     process_tf_templates(
