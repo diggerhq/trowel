@@ -433,7 +433,7 @@ def explode_regional_blocks_with_overrides(config):
             for k, v in region_configs["config_overrides"].items():
                 block_copy[k] = v
             block_copy["region"] = region
-            regional_blocks.append(block)
+            regional_blocks.append(block_copy)
             aws_regions.add(region)
         del block_copy["aws_regions"]
     config["blocks"] = regional_blocks
