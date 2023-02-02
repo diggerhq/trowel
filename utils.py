@@ -508,7 +508,8 @@ def generate_terraform_project(terraform_project_dir, config):
                 repo_branch=branch,
                 debug=debug,
             )
-        elif m["type"] == "container":
+    for m in config["blocks"]:
+        if m["type"] == "container":
             ecs_terraform_dir = f"{terraform_dir}/{m['name']}"
             repo, branch = parse_module_target(m["target"])
             # repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
