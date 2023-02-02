@@ -41,8 +41,8 @@ class Routing(BaseModel):
 class Addon(BaseModel):
     block_name: str
     type: str
-    domain_name: str
-    routings: List[Routing]
+    domain_name: Optional[str]
+    routings: Optional[List[Routing]]
 
 
 class Block(BaseModel):
