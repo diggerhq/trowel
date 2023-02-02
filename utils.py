@@ -428,14 +428,14 @@ def explode_regional_blocks_with_overrides(config):
     aws_regions = set()
     regional_blocks = []
     for block in config["blocks"]:
-        block_copy = deepcopy(block)
         for region, region_configs in block["aws_regions"].items():
+            block_copy = deepcopy(block)
             for k, v in region_configs["config_overrides"].items():
                 block_copy[k] = v
             block_copy["region"] = region
             regional_blocks.append(block_copy)
             aws_regions.add(region)
-        del block_copy["aws_regions"]
+            del block_copy["aws_regions"]
     config["blocks"] = regional_blocks
     config["aws_regions"] = list(aws_regions)
 
