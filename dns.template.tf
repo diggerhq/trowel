@@ -7,7 +7,7 @@
 
     {% for routing in addon.routings %}
       resource "aws_route53_record" "{{ addon.block_name }}_{{ routing.region }}_a_record" {
-        zone_id = data.aws_route53_zone.route53_zone.id
+        zone_id = data.aws_route53_zone.route53_zone_for_{{ addon.block_name }}.id
         {% if routing.subdomain %}
           name    = "{{ routing.subdomain }}.{{ addon.domain_name }}"
         {% else %}
@@ -50,7 +50,7 @@
         records         = [each.value.record]
         ttl             = 60
         type            = each.value.type
-        zone_id         = data.aws_route53_zone.route53_zone.zone_id
+        zone_id         = data.aws_route53_zone.route53_zone_for_{{ addon.block_name }}.id
       }
 
       resource "aws_acm_certificate_validation" "{{ addon.block_name }}_{{ routing.region }}_acm_cert_validation" {
