@@ -1,6 +1,6 @@
 {% for addon in addons  %}
   {% if addon.type == "routing" %}
-    data "aws_route53_zone" "route53_zone" {
+    data "aws_route53_zone" "route53_zone_for_{{ addon.block_name }}" {
       name         = "{{ addon.domain_name }}"
       private_zone = false
     }
