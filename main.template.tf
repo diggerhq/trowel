@@ -31,7 +31,7 @@ provider "aws" {
       ecs_subnet_ids = {{block.ecs_subnet_ids}}
 
       {% if block.enable_https_listener is defined and block.enable_https_listener and block.subdomain_name is defined %}
-        lb_ssl_certificate_arn=aws_acm_certificate.{{ block.name }}_acm_certificate.arn
+        lb_ssl_certificate_arn=aws_acm_certificate.{{ block.name }}_{{ block.region }}_acm_certificate.arn
       {% endif %}
 
       {{ "lb_ssl_certificate_arn=\"" + block.certificate_arn + "\"" | lower if block.certificate_arn is defined else '' }}
