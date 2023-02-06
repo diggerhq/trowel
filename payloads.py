@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, ValidationError, constr, root_validator, validator
 
@@ -30,6 +30,19 @@ class RdsEngineEnum(Enum):
 class EnvironmentVariable(BaseModel):
     key: constr(min_length=1)
     value: str
+
+
+class Routing(BaseModel):
+    region: constr(min_length=1)
+    routing_type: constr(min_length=1)
+    subdomain: Optional[str]
+
+
+class Addon(BaseModel):
+    block_name: str
+    type: str
+    domain_name: Optional[str]
+    routings: Optional[List[Routing]]
 
 
 class Block(BaseModel):
@@ -79,6 +92,7 @@ class Block(BaseModel):
     # imported
     custom_terraform: Optional[str]
     imported_id: Optional[str]
+    aws_regions: Optional[Dict[Any, Any]]
 
     @root_validator(pre=True)
     def block_has_mandatory_data(cls, values):
@@ -140,11 +154,11 @@ class Block(BaseModel):
 class PayloadGenerateTerraform(BaseModel):
     target: constr(min_length=1)
     for_local_run: Optional[bool]
-    aws_region: constr(min_length=1)
     id: constr(min_length=1)
     datadog_enabled: Optional[bool]
 
     blocks: List[Block]
+    addons: Optional[List[Addon]]
 
     secret_keys: Optional[List] = []
     hosted_zone_name: Optional[str]
