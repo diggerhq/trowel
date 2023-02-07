@@ -501,6 +501,13 @@ def generate_terraform_project(terraform_project_dir, config):
     ecs_security_groups_list = []
     block_secrets = {}
 
+    if "namespace" in config and config["namespace"]:
+        for b in config["blocks"]:
+            if "name" in b:
+                b["name"] += "-" + config["namespace"]
+            if "aws_app_identifier" in b:
+                b["aws_app_identifier"] += "-" + config["namespace"]
+
     datadog_enabled = False
     if "datadog_enabled" in config and config["datadog_enabled"]:
         datadog_enabled = True
