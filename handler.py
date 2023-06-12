@@ -23,6 +23,7 @@ def generate_terraform(event, context):
         print(f"generate_terraform: invalid payload: {err}")
         return {"statusCode": 500, "error": err.message}
     except Exception as err:
+        print(err)
         print(f"generate_terraform: failed to validate payload: {err}")
         return {"statusCode": 500, "error": str(err)}
 

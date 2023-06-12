@@ -114,13 +114,13 @@ class Block(BaseModel):
 
     @root_validator(pre=True)
     def redis_mandatory_parameters(cls, values):
-        print(f'redis_mandatory_parameters: {values}')
         if (
             "type" in values
             and values["type"] == "resource"
             and "resource_type" in values
             and values["resource_type"] == "redis"
         ):
+            print(f'redis_mandatory_parameters: {values}')
             if "redis_engine_version" not in values:
                 raise ValueError(f"Missing mandatory 'redis_engine_version' parameter in '{values['name']}' block")
         return values
@@ -154,10 +154,10 @@ class PayloadGenerateTerraform(BaseModel):
 def validate_payload(payload, cls):
     try:
         cls.parse_obj(payload)
-    except ValidationError as err:
-        raise PayloadValidationException(json.dumps(json.loads(err.json())))
-    except ValueError as err:
-        raise PayloadValidationException(str(err))
+    except ValidationError as ve:
+        raise PayloadValidationException(json.dumps(json.loads(ve.json())))
+    except ValueError as ve:
+        raise PayloadValidationException(str(ve))
 
 
 if __name__ == "__main__":
