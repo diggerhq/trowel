@@ -316,6 +316,7 @@ def process_custom_terraform(dest_dir, custom_terraform: str):
 
 
 def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
+    print(f"process_vpc_module, dest_dir: {dest_dir}")
     recreate_dir(dest_dir)
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
     if debug:
@@ -323,6 +324,7 @@ def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
 
 
 def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
+    print(f"process_ecs_module, dest_dir: {dest_dir}")
     recreate_dir(dest_dir)
 
     if "environment_variables" in terraform_options:
@@ -357,6 +359,7 @@ def process_sqs_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
 def process_api_gateway_module(
     dest_dir, terraform_options, repo, repo_branch, debug=False
 ):
+    print(f"process_api_gateway_module, dest_dir: {dest_dir}")
     recreate_dir(dest_dir)
 
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
@@ -368,6 +371,7 @@ def process_api_gateway_module(
 def process_resource_module(
     dest_dir, terraform_options, repo, repo_branch, debug=False
 ):
+    print(f"process_resource_module, dest_dir: {dest_dir}")
     recreate_dir(dest_dir)
 
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
@@ -377,6 +381,7 @@ def process_resource_module(
 
 
 def process_tf_templates(dest_dir, terraform_options, debug=False):
+    print(f"process_tf_templates, dest_dir: {dest_dir}")
     templates = [
         "main.template.tf",
         "ssm.template.tf",
@@ -391,12 +396,12 @@ def process_tf_templates(dest_dir, terraform_options, debug=False):
     ):
         bundle_id = terraform_options["id"]
         region = terraform_options["aws_region"]
-        aws_account_id = ''
-        if 'aws_account_id' in terraform_options:
-            aws_account_id = '-' + terraform_options['aws_account_id']
+        aws_account_id = ""
+        if "aws_account_id" in terraform_options:
+            aws_account_id = "-" + terraform_options["aws_account_id"]
 
         backend_options = {
-            "bucket": f"digger-terraform-state"+ aws_account_id,
+            "bucket": f"digger-terraform-state" + aws_account_id,
             "key": bundle_id,
             "region": region,
             "dynamodb_table": "digger-terraform-state-lock",
@@ -499,6 +504,7 @@ def generate_terraform_project(terraform_project_dir, config):
     updated_config = {"blocks": []}
 
     for m in config["blocks"]:
+
         if m["type"] == "vpc":
             network_module_name = m["name"]
             repo, branch = parse_module_target(m["target"])
