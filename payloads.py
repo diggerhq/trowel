@@ -92,6 +92,10 @@ class Block(BaseModel):
         block_name = values["type"]
         name = values["name"]
 
+        print(f'block_name: {block_name}, name: {name}')
+        if block_name not in cls.Config.required_by_block:
+            raise ValueError(f"Can't find '{block_name}' in Config.required_by_block: {cls.Config.required_by_block}")
+
         for required_field in cls.Config.required_by_block[block_name]:
             if values.get(required_field) is None:
                 raise ValueError(f"Missing mandatory '{required_field}' parameter in '{name}' block")
