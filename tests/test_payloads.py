@@ -270,3 +270,65 @@ class TestPayloadGenerateTerraforms:
                 "type": "value_error",
             }
         ]
+
+    def test_generated_example(self):
+        payload = {
+            "target": "diggerhq/tf-module-bundler@master",
+            "aws_region": "us-east-1",
+            "version": "0.0.31",
+            "id": "4b0cb767-cde5-469c-909c-5a34698d1cc5",
+            "blocks": [
+                {
+                    "aws_app_identifier": "default_network-71b0ea51",
+                    "name": "default_network",
+                    "type": "vpc",
+                    "environment_variables": [],
+                    "secrets": {},
+                    "target": "diggerhq/target-network-module@main",
+                    "enable_vpc_endpoints": False,
+                    "enable_dns_hostnames": False,
+                    "enable_dns_support": False,
+                    "one_nat_gateway_per_az": False,
+                    "enable_nat_gateway": False,
+                    "custom_terraform": "",
+                },
+                {
+                    "aws_app_identifier": "digger-api-2fd0cb14",
+                    "name": "digger-api",
+                    "type": "container",
+                    "environment_variables": [],
+                    "secrets": {},
+                    "target": "diggerhq/target-ecs-module@dev",
+                    "task_memory": 512,
+                    "task_cpu": 256,
+                    "container_port": 8000,
+                    "load_balancer": True,
+                    "internal": False,
+                    "health_check": "/",
+                    "health_check_matcher": "200-499",
+                    "launch_type": "FARGATE",
+                    "monitoring_enabled": False,
+                    "lb_monitoring_enabled": False,
+                    "custom_terraform": "",
+                },
+                {
+                    "aws_app_identifier": "digger-db-6cab4af3",
+                    "name": "digger-db",
+                    "type": "postgres",
+                    "environment_variables": [],
+                    "secrets": {},
+                    "target": "diggerhq/target-rds-module@dev",
+                    "resource_type": "database",
+                    "connection_schema": "postgres",
+                    "rds_engine": "postgres",
+                    "rds_engine_version": "14.4",
+                    "rds_instance_class": "db.t3.micro",
+                    "custom_terraform": "",
+                },
+            ],
+            "created": 1686566828771,
+            "environment_variables": [],
+            "secrets": {},
+        }
+
+        PayloadGenerateTerraform.parse_obj(payload)

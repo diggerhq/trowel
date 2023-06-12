@@ -12,6 +12,7 @@ class BlockTypeEnum(Enum):
     container = "container"
     resource = "resource"
     imported = "imported"
+    postgres = "postgres"
 
 
 class ResourceTypeEnum(Enum):
@@ -89,19 +90,16 @@ class Block(BaseModel):
         if "name" not in values:
             raise ValueError(f"Missing block name")
 
-        # TODO: fix validation
-        """
-        block_name = values["type"]
+        block_type = values["type"]
         name = values["name"]
         
-        print(f'block_name: {block_name}, name: {name}')
-        if block_name not in cls.Config.required_by_block:
-            raise ValueError(f"Can't find '{block_name}' in Config.required_by_block: {cls.Config.required_by_block}")
+        print(f'block_type: {block_type}, name: {name}')
+        if block_type not in cls.Config.required_by_block:
+            raise ValueError(f"Can't find '{block_type}' in Config.required_by_block: {cls.Config.required_by_block}")
 
-        for required_field in cls.Config.required_by_block[block_name]:
+        for required_field in cls.Config.required_by_block[block_type]:
             if values.get(required_field) is None:
                 raise ValueError(f"Missing mandatory '{required_field}' parameter in '{name}' block")
-        """
         return values
 
     @validator("name")
@@ -141,6 +139,7 @@ class Block(BaseModel):
                 "aws_app_identifier",
                 "type",
             ),
+            BlockTypeEnum.postgres.value: (),
         }
 
 
