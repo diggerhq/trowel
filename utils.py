@@ -580,7 +580,7 @@ def generate_terraform_project(terraform_project_dir, config):
     ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
     print(f"ecs_security_groups: {ecs_security_groups}")
     for m in config["blocks"]:
-        if m["type"] == "resource":
+        if m["type"] in ["resource", "postgresql"]:
             repo, branch = parse_module_target(m["target"])
 
             if m["resource_type"] == "database":
