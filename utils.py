@@ -580,10 +580,12 @@ def generate_terraform_project(terraform_project_dir, config):
     ecs_security_groups = f'[{",".join(ecs_security_groups_list)}]'
     print(f"ecs_security_groups: {ecs_security_groups}")
     for m in config["blocks"]:
-        if m["type"] in ["resource", "postgresql"]:
+        if m["type"] in ["resource"]:
+            print(f"resource block, type: {m['type']}")
             repo, branch = parse_module_target(m["target"])
 
             if m["resource_type"] == "database":
+                print(f"resource block, resource_type: {m['resource_type']}")
                 repo = "target-rds-module"  # todo repo, branch hardcoded for now
                 branch = "dev"
                 public_subnets_ids = f"module.{network_module_name}.public_subnets"
