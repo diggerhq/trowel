@@ -24,6 +24,7 @@ jobs:
           poetry install
 
       - name: Run terraform-compliance
+        run: |
           bash bdd.bash test_configs/test.json
           bash bdd.bash test_configs/digger.json
           bash bdd.bash test_configs/hubii.json
