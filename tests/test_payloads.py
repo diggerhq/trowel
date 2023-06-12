@@ -22,7 +22,8 @@ class TestPayloadGenerateTerraforms:
         )
 
     @pytest.mark.parametrize(
-        "missing_field", ["target", "aws_region", "id", "blocks"],
+        "missing_field",
+        ["target", "aws_region", "id", "blocks"],
     )
     def test_missing_root_level_field(self, missing_field):
         payload = {
@@ -96,7 +97,6 @@ class TestPayloadGenerateTerraforms:
             }
         )
 
-
     def test_missing_mandatory_field_in_vpc(self):
         # mandatory block name is missing
         payload = {
@@ -151,7 +151,13 @@ class TestPayloadGenerateTerraforms:
             }
         ]
 
-    @pytest.mark.parametrize("missing_field", ("resource_type", "aws_app_identifier",))
+    @pytest.mark.parametrize(
+        "missing_field",
+        (
+            "resource_type",
+            "aws_app_identifier",
+        ),
+    )
     def test_missing_mandatory_field_in_resource(self, missing_field):
         payload = {
             "target": "diggerhq/tf-module-bundler@master",
@@ -199,8 +205,6 @@ class TestPayloadGenerateTerraforms:
                 }
             )
 
-
-
     def test_load_balancer_disabled(self):
         with pytest.raises(ValidationError):
             assert PayloadGenerateTerraform.parse_obj(
@@ -214,7 +218,7 @@ class TestPayloadGenerateTerraforms:
                             "target": "diggerhq/target-network-module@main",
                             "type": "vpc",
                             "load_balancer": False,
-                            "container_port": "8000"
+                            "container_port": "8000",
                         },
                     ],
                 }
@@ -233,12 +237,11 @@ class TestPayloadGenerateTerraforms:
                         "type": "resource",
                         "aws_app_identifier": "redis",
                         "resource_type": "redis",
-                        "redis_engine_version": "14"
+                        "redis_engine_version": "14",
                     },
                 ],
             }
         )
-
 
     @pytest.mark.parametrize("missing_field", ("redis_engine_version",))
     def test_missing_mandatory_field_in_redis_resource(self, missing_field):
