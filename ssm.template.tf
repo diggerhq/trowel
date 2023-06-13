@@ -1,6 +1,3 @@
-
-
-
 locals {
 {% for block in blocks %}
   {% if 'secrets' in block and block.secrets | length > 0 %}
@@ -8,7 +5,7 @@ locals {
             {% for s, v in block.secrets.items() %}
     {
     "key" : "{{ s }}"
-    "value": "{{ v }}"
+    "value": {{ v }}
     },
             {% endfor %}
       ]

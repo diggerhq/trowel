@@ -323,6 +323,16 @@ def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
         add_debug_info(dest_dir, terraform_options)
 
 
+def process_secrets_mapping(mappings: list):
+    result = {}
+    for i in mappings:
+        name, block_ssm = i.split(":")
+        block_name, ssm = block_ssm.split(".")
+        print(f"name: {name}, block: {block_name}, ssm: {ssm}")
+        result[name] = "module." + block_ssm
+    return result
+
+
 def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
     print(f"process_ecs_module, dest_dir: {dest_dir}")
     recreate_dir(dest_dir)
@@ -331,6 +341,17 @@ def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
         terraform_options["environment_variables"] = convert_to_hcl(
             json.dumps(terraform_options["environment_variables"], indent=2)
         )
+
+    if "secret_mappings" in terraform_options:
+        print(terraform_options['secret_mappings'])
+        secrets = process_secrets_mapping(terraform_options['secret_mappings'])
+        if "secrets" not in terraform_options:
+            terraform_options["secrets"] = {}
+
+        terraform_options["secrets"] |= secrets
+        #terraform_options["secret_mappings"] = convert_to_hcl(
+        #    json.dumps(terraform_options["secret_mappings"], indent=2)
+        #)
 
     run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
 
