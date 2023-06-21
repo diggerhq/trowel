@@ -3,7 +3,7 @@ locals {
   alb_name                       = "{{ alb_name }}"
   lb_sg_name                     = "{{ alb_name }}-sg"
   internal                       = {{ internal | lower }}
-  subnet_ids                     = local.internal ? var.private_subnets : var.public_subnets
+  subnet_ids                     = module.{{ network_module_name }}.private_subnets
   lb_port                        = "80"
   lb_protocol                    = "HTTP"
   lb_ssl_protocol                = "HTTPS"
@@ -17,15 +17,20 @@ locals {
   lb_access_logs_expiration_days = "7"
   lb_ssl_certificate_arn         = null
   dggr_acm_certificate_arn       = null
-  vpc_id                         = data.aws_vpc.vpc.id
+  vpc_id                         = module.{{ network_module_name }}.vpc_id
+  alb_zone_id                     = aws_alb.main.zone_id
+  //alb_https_listener_arn          =try(aws_lb_listener.https[0].arn, null)
+  alb_http_listener_arn           =try(aws_alb_listener.http.arn, null)
+  alb_arn                         =aws_alb.main.arn
+  alb_dns                         =aws_alb.main.dns_name
+  listener_arn                    =aws_alb_listener.http.arn
 }
 
 resource "aws_security_group" "lb_sg" {
   name        = local.lb_sg_name
   description = "Allow connections from external resources."
   vpc_id      = local.vpc_id
-
-  tags = var.tags
+  tags = {{ tags }}
 }
 
 resource "aws_security_group_rule" "lb_ingress_rule" {
@@ -53,10 +58,10 @@ resource "aws_alb" "main" {
   name = local.alb_name
 
   # launch lbs in public or private subnets based on "internal" variable
-  internal        = local.internal
-  subnets         = local.subnet_ids
+  internal        = {{ internal | lower }}
+  subnets         = module.{{ network_module_name }}.private_subnets
   security_groups = [aws_security_group.lb_sg.id]
-  tags            = var.tags
+  tags            = {{ tags }}
 
   # enable access logs in order to get support from aws
   access_logs {
@@ -71,8 +76,8 @@ data "aws_elb_service_account" "main" {
 # bucket for storing ALB access logs
 resource "aws_s3_bucket" "lb_access_logs" {
   bucket_prefix = local.alb_name
-  tags          = var.tags
   force_destroy = true
+  tags          = {{ tags }}
 }
 
 resource "aws_s3_bucket_acl" "lb_access_logs_acl" {
@@ -156,10 +161,10 @@ resource "aws_alb_listener" "http" {
   lifecycle {
     ignore_changes = [port, protocol, default_action]
   }
+  tags          = {{ tags }}
 }
 
-/*
-resource "aws_lb_listener" "https" {
+resource "aws_alb_listener" "https" {
   count = (local.lb_ssl_certificate_arn==null && local.dggr_acm_certificate_arn==null) ? 0 : 1
   load_balancer_arn = aws_alb.main.arn
   port              = local.lb_ssl_port
@@ -175,33 +180,36 @@ resource "aws_lb_listener" "https" {
       status_code  = "200"
     }
   }
+  tags          = {{ tags }}
 }
 
-
-resource "aws_lb_listener_certificate" "lb_listener_cert" {
+/*
+resource "aws_alb_listener_certificate" "lb_listener_cert" {
    count = (local.lb_ssl_certificate_arn==null && local.dggr_acm_certificate_arn==null) ? 0 : 1
    listener_arn = aws_lb_listener.https[0].arn
    certificate_arn   = local.lb_ssl_certificate_arn==null ? local.dggr_acm_certificate_arn : local.lb_ssl_certificate_arn
 }
 */
+
 # The load balancer DNS name
-output "lb_dns" {
-  value = aws_alb.main.dns_name
+output "alb_dns" {
+  value = local.alb_dns
 }
 
-output "lb_arn" {
-  value = aws_alb.main.arn
+output "alb_arn" {
+  value = local.alb_arn
 }
 
-output "lb_http_listener_arn" {
-  value = try(aws_alb_listener.http.arn, null)
+output "alb_http_listener_arn" {
+  value = local.alb_http_listener_arn
 }
 
 /*
-output "lb_https_listener_arn" {
-  value = try(aws_lb_listener.https[0].arn, null)
+output "alb_https_listener_arn" {
+  value = local.alb_https_listener_arn
 }
 */
-output "lb_zone_id" {
-  value = aws_alb.main.zone_id
+
+output "alb_zone_id" {
+  value = local.alb_zone_id
 }

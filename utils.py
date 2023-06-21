@@ -208,7 +208,8 @@ def strip_new_lines(text):
 def format_generated_terraform(terraform_dir):
     # run 'terraform fmt' first
     try:
-        terraform_format(terraform_dir)
+        pass
+        # terraform_format(terraform_dir)
     except subprocess.CalledProcessError:
         raise TerraformFormatError("Failed to format terraform project.")
 
@@ -225,6 +226,14 @@ def format_generated_terraform(terraform_dir):
 
 def convert_to_hcl(t):
     return str(t).replace("'", '"')
+
+
+def convert_dict_to_hcl(d: dict):
+    result = "{"
+    for k, v in d.items():
+        result += f'"{k}"="{v}",'
+    result += "}"
+    return result
 
 
 def dashify(value, attribute=None):
@@ -333,30 +342,30 @@ def process_secrets_mapping(mappings: list):
     return result
 
 
-def process_ecs_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
+def process_ecs_module(dest_dir, block_options, repo, repo_branch, debug=False):
     print(f"process_ecs_module, dest_dir: {dest_dir}")
     recreate_dir(dest_dir)
 
-    if "environment_variables" in terraform_options:
-        terraform_options["environment_variables"] = convert_to_hcl(
-            json.dumps(terraform_options["environment_variables"], indent=2)
+    if "environment_variables" in block_options:
+        block_options["environment_variables"] = convert_to_hcl(
+            json.dumps(block_options["environment_variables"], indent=2)
         )
 
-    if "secret_mappings" in terraform_options:
-        print(terraform_options['secret_mappings'])
-        secrets = process_secrets_mapping(terraform_options['secret_mappings'])
-        if "secrets" not in terraform_options:
-            terraform_options["secrets"] = {}
+    if "secret_mappings" in block_options:
+        print(block_options["secret_mappings"])
+        secrets = process_secrets_mapping(block_options["secret_mappings"])
+        if "secrets" not in block_options:
+            block_options["secrets"] = {}
 
-        terraform_options["secrets"] |= secrets
-        #terraform_options["secret_mappings"] = convert_to_hcl(
+        block_options["secrets"] |= secrets
+        # terraform_options["secret_mappings"] = convert_to_hcl(
         #    json.dumps(terraform_options["secret_mappings"], indent=2)
-        #)
+        # )
 
-    run_jinja_for_dir(repo, repo_branch, terraform_options, dest_dir)
+    run_jinja_for_dir(repo, repo_branch, block_options, dest_dir)
 
     if debug:
-        add_debug_info(dest_dir, terraform_options)
+        add_debug_info(dest_dir, block_options)
 
 
 def process_s3_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
@@ -401,14 +410,35 @@ def process_resource_module(
         add_debug_info(dest_dir, terraform_options)
 
 
-def process_tf_templates(dest_dir, terraform_options, debug=False):
+def process_tf_templates(dest_dir, terraform_options, tf_templates_dir, debug=False):
     print(f"process_tf_templates, dest_dir: {dest_dir}")
+
     templates = [
         "main.template.tf",
         "ssm.template.tf",
         "dns.template.tf",
         "outputs.template.tf",
     ]
+
+    # check if shared ALB needs to be created
+    if "shared_alb" in terraform_options and terraform_options["shared_alb"] is True:
+        if "shared_alb_name" not in terraform_options:
+            raise ValueError(
+                f"shared_alb_name param is missing. If 'shared_alb' is true, then 'shared_alb_name' is mandatory."
+            )
+        if "alb_name" in terraform_options:
+            raise ValueError(f"'alb_name' param is reserved for internal use.")
+        templates.append("alb.template.tf")
+        terraform_options["alb_name"] = terraform_options["shared_alb_name"]
+
+        # shared alb is internal by default
+        terraform_options["internal"] = True
+
+        for b in terraform_options["blocks"]:
+            if "listener_arn" not in b:
+                b["listener_arn"] = "test_listener"
+            if "alb_arn" not in b:
+                b["alb_arn"] = "test_listener"
 
     # process backend.tf separately
     if (
@@ -428,12 +458,12 @@ def process_tf_templates(dest_dir, terraform_options, debug=False):
             "dynamodb_table": "digger-terraform-state-lock",
         }
 
-        jinja_template = "backend.template.tf"
+        jinja_template = tf_templates_dir + "backend.template.tf"
         jinja_result = f"{dest_dir}/backend.tf"
         render_jinja_template(backend_options, jinja_template, jinja_result, False)
 
     for t in templates:
-        jinja_template = t
+        jinja_template = tf_templates_dir + t
         r = t.replace(".template", "")
         jinja_result = f"{dest_dir}/{r}"
         render_jinja_template(terraform_options, jinja_template, jinja_result, False)
@@ -472,7 +502,7 @@ def parse_module_target(target):
         raise PayloadValidationException(f"Target {target} is in a wrong format.")
 
 
-def generate_terraform_project(terraform_project_dir, config):
+def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
     """
     generates terraform project for specified options in config and return it as base64 encoded zip file in
     the following json:
@@ -482,9 +512,13 @@ def generate_terraform_project(terraform_project_dir, config):
         }
 
     :param terraform_project_dir:
+    :param tf_templates_dir
     :param config:
     :return:
     """
+
+    if "tags" in config:
+        config["tags"] = convert_dict_to_hcl(config["tags"])
     debug = False
     if "debug" in config and config["debug"]:
         debug = True
@@ -530,11 +564,11 @@ def generate_terraform_project(terraform_project_dir, config):
             network_module_name = m["name"]
             repo, branch = parse_module_target(m["target"])
             vpc_terraform_dir = f"{terraform_dir}/{m['name']}"
-            terraform_options = m  # todo: move to a separate dict
+            block_options = m  # todo: move to a separate dict
 
             process_vpc_module(
                 dest_dir=vpc_terraform_dir,
-                terraform_options=terraform_options,
+                terraform_options=block_options,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
@@ -571,11 +605,11 @@ def generate_terraform_project(terraform_project_dir, config):
             else:
                 m["alb_subnet_ids"] = public_subnets_ids
 
-            terraform_options = m  # todo: move to a separate dict
+            block_options = m  # todo: move to a separate dict
 
             process_ecs_module(
                 dest_dir=ecs_terraform_dir,
-                terraform_options=terraform_options,
+                block_options=block_options,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
@@ -639,11 +673,11 @@ def generate_terraform_project(terraform_project_dir, config):
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             m["security_groups"] = ecs_security_groups
 
-            terraform_options = m  # todo: move to a separate dict
+            block_options = m  # todo: move to a separate dict
 
             process_resource_module(
                 dest_dir=resource_terraform_dir,
-                terraform_options=terraform_options,
+                terraform_options=block_options,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
@@ -656,11 +690,11 @@ def generate_terraform_project(terraform_project_dir, config):
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
             subnets = f"module.{network_module_name}.public_subnets"
             m["subnets"] = subnets
-            terraform_options = m  # todo: move to a separate dict
+            block_options = m  # todo: move to a separate dict
 
             process_api_gateway_module(
                 dest_dir=resource_terraform_dir,
-                terraform_options=terraform_options,
+                terraform_options=block_options,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
@@ -670,11 +704,11 @@ def generate_terraform_project(terraform_project_dir, config):
         if m["type"] == "sqs":
             repo, branch = parse_module_target(m["target"])
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
-            terraform_options = m  # todo: move to a separate dict
+            block_options = m  # todo: move to a separate dict
 
             process_sqs_module(
                 dest_dir=resource_terraform_dir,
-                terraform_options=terraform_options,
+                terraform_options=block_options,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
@@ -683,10 +717,10 @@ def generate_terraform_project(terraform_project_dir, config):
         if m["type"] == "s3":
             repo, branch = parse_module_target(m["target"])
             resource_terraform_dir = f"{terraform_dir}/{m['name']}"
-            terraform_options = m  # todo: move to a separate dict
+            block_options = m  # todo: move to a separate dict
             process_s3_module(
                 dest_dir=resource_terraform_dir,
-                terraform_options=terraform_options,
+                terraform_options=block_options,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
@@ -702,6 +736,7 @@ def generate_terraform_project(terraform_project_dir, config):
     process_tf_templates(
         dest_dir=terraform_dir,
         terraform_options=main_tf_options,
+        tf_templates_dir=tf_templates_dir,
         debug=debug,
     )
 

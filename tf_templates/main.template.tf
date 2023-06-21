@@ -43,10 +43,11 @@ provider "aws" {
 
       {{ "datadog_key_ssm_arn=aws_ssm_parameter.datadog_key.arn" if block.datadog_enabled is defined else '' }}
 
+      {{ "listener_arn=local.listener_arn" if block.listener_arn is defined else '' }}
+      {{ "alb_arn=local.alb_arn" if block.alb_arn is defined else '' }}
+
       region = "{{ aws_region }}"
-      tags = {
-        digger_identifier = "{{block.aws_app_identifier}}"
-      }
+      tags = {{ tags }}
     }
   {% elif block.type == "resource" and block.resource_type == "database" %}
     module "{{ block.name }}" {

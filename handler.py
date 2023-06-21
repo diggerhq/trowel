@@ -30,7 +30,7 @@ def generate_terraform(event, context):
     try:
         if use_temp_dir:
             with tempfile.TemporaryDirectory() as tmp_dir_name:
-                result = generate_terraform_project(tmp_dir_name, payload)
+                result = generate_terraform_project(tmp_dir_name, "", payload)
                 return result
     except LambdaError as le:
         print(traceback.format_exc())
