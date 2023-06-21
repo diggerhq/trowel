@@ -404,10 +404,10 @@ def process_resource_module(
 def process_tf_templates(dest_dir, terraform_options, debug=False):
     print(f"process_tf_templates, dest_dir: {dest_dir}")
     templates = [
-        "main.template.tf",
-        "ssm.template.tf",
-        "dns.template.tf",
-        "outputs.template.tf",
+        "tf_templates/main.template.tf",
+        "tf_templates/ssm.template.tf",
+        "tf_templates/dns.template.tf",
+        "tf_templates/outputs.template.tf",
     ]
 
     # process backend.tf separately
@@ -428,7 +428,7 @@ def process_tf_templates(dest_dir, terraform_options, debug=False):
             "dynamodb_table": "digger-terraform-state-lock",
         }
 
-        jinja_template = "backend.template.tf"
+        jinja_template = "tf_templates/backend.template.tf"
         jinja_result = f"{dest_dir}/backend.tf"
         render_jinja_template(backend_options, jinja_template, jinja_result, False)
 
