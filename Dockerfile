@@ -13,7 +13,7 @@ RUN git --version
 RUN terraform -v
 
 COPY *.py ${LAMBDA_TASK_ROOT}/
-COPY *.tf ${LAMBDA_TASK_ROOT}/
+COPY tf_templates/*.tf ${LAMBDA_TASK_ROOT}/
 COPY pyproject.toml ${LAMBDA_TASK_ROOT}/
 COPY staticfiles ${LAMBDA_TASK_ROOT}/staticfiles
 
