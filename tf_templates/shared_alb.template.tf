@@ -1,7 +1,7 @@
 
 locals {
-  alb_name                       = "{{ alb_name }}"
-  lb_sg_name                     = "{{ alb_name }}-sg"
+  alb_name                       = var.shared_alb_name
+  lb_sg_name                     = "${var.shared_alb_name}-sg"
   internal                       = {{ internal | lower }}
   subnet_ids                     = module.{{ network_module_name }}.private_subnets
   lb_port                        = "80"

@@ -7,7 +7,7 @@ provider "aws" {
     module "{{ block.name}}" {
       source = "./{{ block.name }}"
       network_name = "{{block.name}}"
-      region = "{{ aws_region }}"
+      region = var.aws_region
       {{ "enable_nat_gateway=" + block.enable_nat_gateway | lower if block.enable_nat_gateway is defined else '' }}
       {{ "one_nat_gateway_per_az=" + block.one_nat_gateway_per_az | lower if block.one_nat_gateway_per_az is defined else '' }}
       tags = {

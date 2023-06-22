@@ -1,7 +1,7 @@
 
 {% if hosted_zone_name is defined %}
 data "aws_route53_zone" "route53_zone" {
-  name         = "{{ hosted_zone_name }}"
+  name         = var.hosted_zone_name
   private_zone = false
 }
 

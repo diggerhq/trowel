@@ -417,6 +417,8 @@ def process_tf_templates(dest_dir, terraform_options, tf_templates_dir, debug=Fa
         "ssm.template.tf",
         "dns.template.tf",
         "outputs.template.tf",
+        "terraform.template.tfvars",
+        "variables.template.tf",
     ]
 
     # check if shared ALB needs to be created
@@ -425,10 +427,8 @@ def process_tf_templates(dest_dir, terraform_options, tf_templates_dir, debug=Fa
             raise ValueError(
                 f"shared_alb_name param is missing. If 'shared_alb' is true, then 'shared_alb_name' is mandatory."
             )
-        if "alb_name" in terraform_options:
-            raise ValueError(f"'alb_name' param is reserved for internal use.")
         templates.append("shared_alb.template.tf")
-        terraform_options["alb_name"] = terraform_options["shared_alb_name"]
+        terraform_options["shared_alb_name"] = terraform_options["shared_alb_name"]
 
         # shared alb is internal by default
         terraform_options["internal"] = True
