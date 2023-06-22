@@ -208,8 +208,7 @@ def strip_new_lines(text):
 def format_generated_terraform(terraform_dir):
     # run 'terraform fmt' first
     try:
-        pass
-        # terraform_format(terraform_dir)
+        terraform_format(terraform_dir)
     except subprocess.CalledProcessError:
         raise TerraformFormatError("Failed to format terraform project.")
 
@@ -428,7 +427,7 @@ def process_tf_templates(dest_dir, terraform_options, tf_templates_dir, debug=Fa
             )
         if "alb_name" in terraform_options:
             raise ValueError(f"'alb_name' param is reserved for internal use.")
-        templates.append("alb.template.tf")
+        templates.append("shared_alb.template.tf")
         terraform_options["alb_name"] = terraform_options["shared_alb_name"]
 
         # shared alb is internal by default
