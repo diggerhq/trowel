@@ -47,7 +47,7 @@ provider "aws" {
       {{ "alb_arn=local.alb_arn" if block.alb_arn is defined else '' }}
       {{ "listener_rule_path_pattern=" + block.listener_rule_path_pattern if block.listener_rule_path_pattern is defined else '' }}
 
-      region = "{{ aws_region }}"
+      region = var.aws_region
       tags = {{ tags }}
     }
   {% elif block.type == "resource" and block.resource_type == "database" %}
