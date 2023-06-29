@@ -16,7 +16,7 @@ data "aws_route53_zone" "route53_zone" {
       }
 
       resource "aws_acm_certificate" "{{ block.name }}_acm_certificate" {
-        domain_name       = "{{ block.subdomain_name }}.{{ hosted_zone_name }}"
+        domain_name       = "${var.{{ block.name }}_subdomain_name}.${var.hosted_zone_name}"
         validation_method = "DNS"
       }
 
