@@ -10,9 +10,7 @@ provider "aws" {
       region = var.aws_region
       {{ "enable_nat_gateway=" + block.enable_nat_gateway | lower if block.enable_nat_gateway is defined else '' }}
       {{ "one_nat_gateway_per_az=" + block.one_nat_gateway_per_az | lower if block.one_nat_gateway_per_az is defined else '' }}
-      tags = {
-        digger_identifier = "{{block.name}}"
-      }
+      tags = var.tags
     }
   {% elif block.type == "container" %}
     module "{{ block.name }}" {
@@ -71,9 +69,7 @@ provider "aws" {
       {{ 'snapshot_identifier="' + block.snapshot_identifier + '"' if block.snapshot_identifier is defined  else '' }}
       {{ 'security_groups=' + block.security_groups if block.security_groups is defined  else '' }}
 
-      tags = {
-        digger_identifier = "{{block.aws_app_identifier}}"
-      }
+      tags = var.tags
     }
   {% elif block.type == "resource" and block.resource_type == "redis" %}
     module "{{ block.name }}" {
@@ -87,9 +83,7 @@ provider "aws" {
       {{ 'redis_node_type="' + block.redis_instance_class + '"' if block.redis_instance_class is defined  else '' }}
       {{ 'redis_number_nodes=' + block.redis_number_nodes | string if block.redis_number_nodes is defined  else '' }}
       {{ 'security_groups=' + block.security_groups if block.security_groups is defined  else '' }}
-      tags = {
-        digger_identifier = "{{block.aws_app_identifier}}"
-      }
+      tags = var.tags
     }
     {% elif block.type == "resource" and block.resource_type == "docdb" %}
     module "{{ block.name }}" {
@@ -98,14 +92,11 @@ provider "aws" {
       cluster_identifier = "{{block.aws_app_identifier}}"
       private_subnets = {{block.private_subnets_ids}}
 
-
       {{ 'engine_version="' + block.docdb_engine_version + '"' if block.docdb_engine_version is defined  else '' }}
       {{ 'instance_class="' + block.docdb_instance_class + '"' if block.docdb_instance_class is defined  else '' }}
       {{ 'instances_number=' + block.instances_number | string if block.instances_number is defined  else '' }}
       {{ 'security_groups=' + block.security_groups if block.security_groups is defined  else '' }}
-      tags = {
-        digger_identifier = "{{block.aws_app_identifier}}"
-      }
+      tags = var.tags
     }
   {% elif block.type == "s3" %}
     module "{{ block.name }}" {
