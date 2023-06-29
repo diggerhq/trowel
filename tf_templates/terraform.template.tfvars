@@ -1,6 +1,5 @@
 
 hosted_zone_name = "{{ hosted_zone_name }}"
-subdomain_name = "{{ subdomain_name }}"
 aws_region = "{{ aws_region }}"
 tags = {{ tags }}
 
