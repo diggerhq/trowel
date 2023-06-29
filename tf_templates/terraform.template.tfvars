@@ -1,7 +1,14 @@
 
 hosted_zone_name = "{{ hosted_zone_name }}"
+subdomain_name = "{{ subdomain_name }}"
 aws_region = "{{ aws_region }}"
 tags = {{ tags }}
+
+{% for block in blocks %}
+{% if block.subdomain_name is defined %}
+{{ block.name }}_subdomain_name = {{ block.subdomain_name}}
+{% endif %}
+{% endfor %}
 
 {% if shared_alb is defined and shared_alb %}
   shared_alb_name =                       "{{ shared_alb_name }}"

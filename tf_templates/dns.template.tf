@@ -9,7 +9,7 @@ data "aws_route53_zone" "route53_zone" {
     {% if block.type == "container" and block.subdomain_name is defined %}
       resource "aws_route53_record" "{{ block.name }}_cname_record" {
         zone_id = data.aws_route53_zone.route53_zone.id
-        name    = "{{ block.subdomain_name }}.{{ hosted_zone_name }}"
+        name    = "${var.{{ block.name }}_subdomain_name}.${var.hosted_zone_name}"
         type    = "CNAME"
         ttl     = "60"
         records = [module.{{ block.name }}.alb_dns]
