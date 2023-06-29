@@ -210,7 +210,8 @@ def format_generated_terraform(terraform_dir):
     try:
         terraform_format(terraform_dir)
     except subprocess.CalledProcessError:
-        raise TerraformFormatError("Failed to format terraform project.")
+        print("Failed to format terraform project.")
+        #raise TerraformFormatError("Failed to format terraform project.")
 
     # and then delete all empty lines in tf files
     files = [f for f in os.listdir(terraform_dir) if re.match(r"^.*\.tf", f)]
