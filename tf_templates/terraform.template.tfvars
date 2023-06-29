@@ -6,7 +6,7 @@ tags = {{ tags }}
 
 {% for block in blocks %}
 {% if block.subdomain_name is defined %}
-{{ block.name }}_subdomain_name = {{ block.subdomain_name}}
+{{ block.name }}_subdomain_name = "{{ block.subdomain_name}}"
 {% endif %}
 {% endfor %}
 
