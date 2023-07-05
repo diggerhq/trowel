@@ -25,6 +25,6 @@ tags = {{ tags }}
 {% endif %}
 
 {% if enable_bastion is defined and enable_bastion %}
-  bastion_ssh_key_name = {{ bastion_ssh_key_name }}
-  bastion_instance_name = {{ bastion_instance_name }}
+  bastion_ssh_key_name = "{{ bastion_ssh_key_name }}"
+  bastion_instance_name = "{{ bastion_instance_name }}"
 {% endif %}
