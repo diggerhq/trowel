@@ -26,4 +26,5 @@ variable "shared_alb_access_logs_expiration_days" {}
 {% if enable_bastion is defined and enable_bastion %}
 variable "bastion_ssh_key_name" {}
 variable "bastion_instance_name" {}
+variable "bastion_allowed_hosts" {}
 {% endif %}
