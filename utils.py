@@ -525,6 +525,9 @@ def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
     ecs_security_groups_list = []
     block_secrets = {}
 
+    if "bastion_enabled" in config:
+        ecs_security_groups_list.append(f"module.bastion.bastion_security_group_id")
+
     if "namespace" in config and config["namespace"]:
         for b in config["blocks"]:
             if "name" in b:
