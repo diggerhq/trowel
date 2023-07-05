@@ -430,7 +430,7 @@ def process_tf_templates(dest_dir, terraform_options, tf_templates_dir, debug=Fa
         or terraform_options["remote_state"] != "local"
     ):
         bundle_id = terraform_options["id"]
-        region = terraform_options["aws_region"]
+        region = terraform_options["backend_region"]
         aws_account_id = ""
         if "aws_account_id" in terraform_options:
             aws_account_id = "-" + terraform_options["aws_account_id"]

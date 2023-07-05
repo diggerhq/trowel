@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     bucket = "{{ bucket }}"
     key    = "{{ key }}"
-    region = "{{ region }}"
+    region = "{{ backend_region }}"
     dynamodb_table = "{{ dynamodb_table }}"
   }
 }
