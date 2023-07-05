@@ -67,7 +67,10 @@ provider "aws" {
       {{ 'database_username="' + block.database_username + '"' if block.database_username is defined  else '' }}
       {{ 'publicly_accessible="' + block.publicly_accessible + '"' if block.publicly_accessible is defined  else '' }}
       {{ 'snapshot_identifier="' + block.snapshot_identifier + '"' if block.snapshot_identifier is defined  else '' }}
-      {{ 'security_groups=' + block.security_groups if block.security_groups is defined  else '' }}
+
+      {% if block.security_groups is defined %}
+        security_groups={{block.security_groups}}
+      {% endif %}
 
       tags = var.tags
     }
@@ -118,6 +121,17 @@ provider "aws" {
     }
   {% endif %}
 {% endfor %}
+
+{% if enable_bastion is defined and enable_bastion %}
+module "bastion" {
+  source            = "github.com/diggerhq/terraform-aws-bastion-host"
+  subnet_id         = module.{{ network_module_name }}.public_subnets[0]
+  ssh_key           = "{{ bastion_ssh_key_name }}"
+  instance_name     = "{{ bastion_instance_name }}"
+  internal_networks = module.cloud_vpc.public_subnets_cidr_blocks
+  tags = var.tags
+}
+{% endif %}
 
 
 

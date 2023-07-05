@@ -267,22 +267,6 @@ def render_jinja_template(
         os.remove(input_file)
 
 
-def process(dest_dir, repo, repo_branch, module_name, templates, terraform_options):
-    dest_jinja_dir = dest_dir + "/" + module_name
-
-    if os.path.isdir(dest_jinja_dir):
-        shutil.rmtree(dest_jinja_dir)
-
-    clone_public_github_repo(repo, repo_branch, dest_jinja_dir)
-
-    for t in templates:
-        jinja_template = dest_jinja_dir + t[0]
-        jinja_result = dest_jinja_dir + t[1]
-        render_jinja_template(terraform_options, jinja_template, jinja_result, True)
-
-    terraform_format(dest_jinja_dir)
-
-
 def process_terraform_overrides(
     dest_dir,
     override_repo_name,
