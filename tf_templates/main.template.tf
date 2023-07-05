@@ -132,6 +132,3 @@ module "bastion" {
   tags = var.tags
 }
 {% endif %}
-
-
-

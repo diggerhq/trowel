@@ -4,9 +4,9 @@ aws_region = "{{ aws_region }}"
 tags = {{ tags }}
 
 {% for block in blocks %}
-{% if block.subdomain_name is defined %}
-{{ block.name }}_subdomain_name = "{{ block.subdomain_name}}"
-{% endif %}
+  {% if block.subdomain_name is defined %}
+    {{ block.name }}_subdomain_name = "{{ block.subdomain_name}}"
+  {% endif %}
 {% endfor %}
 
 {% if shared_alb is defined and shared_alb %}
@@ -22,4 +22,9 @@ tags = {{ tags }}
   shared_alb_health_check_interval        = "30"
   shared_alb_health_check_timeout         = "30"
   shared_alb_access_logs_expiration_days  = "7"
+{% endif %}
+
+{% if enable_bastion is defined and enable_bastion %}
+  bastion_ssh_key_name = {{ bastion_ssh_key_name }}
+  bastion_instance_name = {{ bastion_instance_name }}
 {% endif %}
