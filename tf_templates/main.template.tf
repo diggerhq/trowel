@@ -126,8 +126,8 @@ provider "aws" {
 module "bastion" {
   source            = "github.com/diggerhq/terraform-aws-bastion-host"
   subnet_id         = module.{{ network_module_name }}.public_subnets[0]
-  ssh_key           = "{{ bastion_ssh_key_name }}"
-  instance_name     = "{{ bastion_instance_name }}"
+  ssh_key           = var.bastion_ssh_key_name
+  instance_name     = var.bastion_instance_name
   internal_networks = module.cloud_vpc.public_subnets_cidr_blocks
   tags = var.tags
 }
