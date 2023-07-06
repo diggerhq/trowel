@@ -26,6 +26,7 @@ class LaunchTypeEnum(Enum):
 
 class RdsEngineEnum(Enum):
     postgres = "postgres"
+    mysql = "mysql"
 
 
 class EnvironmentVariable(BaseModel):
