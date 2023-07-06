@@ -128,7 +128,7 @@ module "bastion" {
   subnet_id         = module.{{ network_module_name }}.public_subnets[0]
   ssh_key           = var.bastion_ssh_key_name
   instance_name     = var.bastion_instance_name
-  internal_networks = module.cloud_vpc.public_subnets_cidr_blocks
+  internal_networks = module.{{ network_module_name }}.public_subnets_cidr_blocks
   allowed_hosts = var.bastion_allowed_hosts
   tags = var.tags
 }
