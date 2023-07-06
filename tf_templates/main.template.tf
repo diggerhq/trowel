@@ -129,7 +129,7 @@ module "bastion" {
   ssh_key           = var.bastion_ssh_key_name
   instance_name     = var.bastion_instance_name
   internal_networks = module.cloud_vpc.public_subnets_cidr_blocks
-  bastion_allowed_hosts = var.bastion_allowed_hosts
+  allowed_hosts = var.bastion_allowed_hosts
   tags = var.tags
 }
 {% endif %}
