@@ -15,6 +15,8 @@ from exceptions import (
     TerraformFormatError,
     ValidationError,
 )
+from hcl import convert_string_to_hcl, convert_dict_to_hcl, convert_config_parameters_to_hcl
+from validators import validate_bastion_parameters
 
 
 def add_debug_info(dest_dir, terraform_options):
@@ -224,18 +226,6 @@ def format_generated_terraform(terraform_dir):
             tf_file.write(tf_content)
 
 
-def convert_to_hcl(t):
-    return str(t).replace("'", '"')
-
-
-def convert_dict_to_hcl(d: dict):
-    result = "{"
-    for k, v in d.items():
-        result += f'"{k}"="{v}",'
-    result += "}"
-    return result
-
-
 def dashify(value, attribute=None):
     return str(value).replace("_", "-")
 
@@ -331,7 +321,7 @@ def process_ecs_module(dest_dir, block_options, repo, repo_branch, debug=False):
     recreate_dir(dest_dir)
 
     if "environment_variables" in block_options:
-        block_options["environment_variables"] = convert_to_hcl(
+        block_options["environment_variables"] = convert_string_to_hcl(
             json.dumps(block_options["environment_variables"], indent=2)
         )
 
@@ -526,7 +516,10 @@ def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
     block_secrets = {}
 
     if "enable_bastion" in config:
+        validate_bastion_parameters(config)
         ecs_security_groups_list.append(f"module.bastion.bastion_security_group_id")
+
+    config = convert_config_parameters_to_hcl(config)
 
     if "namespace" in config and config["namespace"]:
         for b in config["blocks"]:
