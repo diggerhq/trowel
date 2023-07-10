@@ -7,8 +7,10 @@ from pathlib import Path
 from utils import generate_terraform_project
 
 
-config_path = os.path.expanduser("~/tmp/olaclick/dgctl.json")
-terraform_project_path = os.path.expanduser("~/tmp/olaclick/generated")
+#config_path = os.path.expanduser("~/tmp/olaclick/dgctl.json")
+#terraform_project_path = os.path.expanduser("~/tmp/olaclick/qa")
+config_path = os.path.expanduser("~/projects/cloud-infra/dgctl.json")
+terraform_project_path = os.path.expanduser("~/projects/cloud-infra/generated")
 
 with open(config_path, 'r') as f:
     bundle_spec = json.loads(f.read())
