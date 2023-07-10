@@ -14,7 +14,11 @@ provider "aws" {
     }
   {% elif block.type == "container" %}
     module "{{ block.name }}" {
+      {% if block.shared_terraform_module is defined and block.shared_terraform_module %}
+      source = "./{{ block.shared_terraform_module_name }}"
+      {% else %}
       source = "./{{ block.name }}"
+      {% endif %}
       vpc_id = module.{{ network_module_name }}.vpc_id
       ecs_cluster_name = "{{block.aws_app_identifier}}"
       ecs_service_name = "{{block.aws_app_identifier}}"

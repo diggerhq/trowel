@@ -2,12 +2,24 @@ def convert_string_to_hcl(t):
     return str(t).replace("'", '"')
 
 
-def convert_secrets_list_to_hcl(secrets, secret_mappings, aws_region, aws_account_id) -> str:
+def convert_secrets_list_to_hcl(
+    secrets: list, secret_mappings: list, aws_region: str, aws_account_id: str
+) -> str:
+    """
+    secret_mappings item are converted to terraform references without quotes
+    secrets items should start with a '/' (ex: /dev/database_password) and arn prefix is being added
+    :param secrets:
+    :param secret_mappings:
+    :param aws_region:
+    :param aws_account_id:
+    :return:
+    """
     result = "[\n"
     for s in secrets:
-        result += '{ "key": "' + s['key'] + f'", "value": "arn:aws:ssm:{aws_region}:{aws_account_id}:parameter' + s['value'] + '"},\n'
+        secret_arn = f"arn:aws:ssm:{aws_region}:{aws_account_id}:parameter{s['value']}"
+        result += '{ "key": "' + s["key"] + '", "value": "' + secret_arn + '" },\n'
     for s in secret_mappings:
-        result += '{ "key": "' + s['key'] + '", "value": ' + s['value'] + '},\n'
+        result += '{ "key": "' + s["key"] + '", "value": ' + s["value"] + "},\n"
     result += "]\n"
     return result
 
@@ -22,5 +34,7 @@ def convert_dict_to_hcl(d: dict):
 
 def convert_config_parameters_to_hcl(config: dict):
     if "bastion_allowed_hosts" in config:
-        config["bastion_allowed_hosts"] = convert_string_to_hcl(config["bastion_allowed_hosts"])
+        config["bastion_allowed_hosts"] = convert_string_to_hcl(
+            config["bastion_allowed_hosts"]
+        )
     return config

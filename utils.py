@@ -325,10 +325,14 @@ def process_secrets_mapping(mappings: list):
 
 
 def process_ecs_module(
-    dest_dir, block_options: dict, digger_config: dict, repo, repo_branch, debug=False
+    terraform_dir, block_options: dict, digger_config: dict, repo, repo_branch, debug=False, datadog_enabled=False
 ):
-    print(f"process_ecs_module, dest_dir: {dest_dir}")
-    recreate_dir(dest_dir)
+    if "shared_terraform_module" in block_options and block_options["shared_terraform_module"]:
+        ecs_terraform_dir = f"{terraform_dir}/{block_options['shared_terraform_module_name']}"
+    else:
+        ecs_terraform_dir = f"{terraform_dir}/{block_options['name']}"
+    print(f"process_ecs_module, dest_dir: {ecs_terraform_dir}")
+    recreate_dir(ecs_terraform_dir)
 
     # copy "shared" env variables from the root level
     environment_variables = []
@@ -345,7 +349,9 @@ def process_ecs_module(
     secrets = []
     secrets_mappings = []
     if "secrets" in digger_config:
-        secrets = digger_config["secrets"]
+        secrets += digger_config["secrets"]
+    if "secrets" in block_options:
+        secrets += block_options["secrets"]
     if "secret_mappings" in block_options:
         secrets_mappings = process_secrets_mapping(block_options["secret_mappings"])
 
@@ -354,10 +360,21 @@ def process_ecs_module(
 
     block_options["secrets"] = convert_secrets_list_to_hcl(secrets, secrets_mappings, aws_region, aws_account_id)
 
-    run_jinja_for_dir(repo, repo_branch, block_options, dest_dir)
+    run_jinja_for_dir(repo, repo_branch, block_options, ecs_terraform_dir)
+
+    generate_ecs_task_execution_policy(
+        ecs_terraform_dir,
+        s3_bucket_arn_list=[],
+        ssm_list=["*"],
+        sqs_arn_list=[],
+        datadog_enabled=datadog_enabled,
+    )
+    generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
 
     if debug:
-        add_debug_info(dest_dir, block_options)
+        add_debug_info(ecs_terraform_dir, block_options)
+
+
 
 
 def process_s3_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
@@ -579,7 +596,6 @@ def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
                 f"module.{m['name']}.ecs_task_security_group_id"
             )
 
-            ecs_terraform_dir = f"{terraform_dir}/{m['name']}"
             repo, branch = parse_module_target(m["target"])
             # repo = 'target-ecs-module'  # todo repo, branch hardcoded for now
             # branch = 'dev'
@@ -606,29 +622,19 @@ def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
             block_options = m  # todo: move to a separate dict
 
             process_ecs_module(
-                dest_dir=ecs_terraform_dir,
+                terraform_dir=terraform_dir,
                 block_options=block_options,
                 digger_config=config,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
+                datadog_enabled=datadog_enabled
             )
-            generate_ecs_task_execution_policy(
-                ecs_terraform_dir,
-                s3_bucket_arn_list=[],
-                ssm_list=["*"],
-                sqs_arn_list=[],
-                datadog_enabled=datadog_enabled,
-            )
-            generate_ecs_task_policy(ecs_terraform_dir, use_ssm=True)
+
             updated_config["blocks"].append(m)
 
             if "secrets" in m:
                 block_secrets[m["name"]] = m["secrets"]
-            if "custom_terraform" in m:
-                process_custom_terraform(
-                    dest_dir=ecs_terraform_dir, custom_terraform=m["custom_terraform"]
-                )
 
         if m["type"] == "imported":
             dest_dir = f"{terraform_dir}/{m['name']}"
