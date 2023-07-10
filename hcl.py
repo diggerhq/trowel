@@ -2,6 +2,16 @@ def convert_string_to_hcl(t):
     return str(t).replace("'", '"')
 
 
+def convert_secrets_list_to_hcl(secrets, secret_mappings) -> str:
+    result = "[\n"
+    for s in secrets:
+        result += '{ "key": "' + s['key'] + '", "value": "' + s['value'] + '"},\n'
+    for s in secret_mappings:
+        result += '{ "key": "' + s['key'] + '", "value": ' + s['value'] + '},\n'
+    result += "]\n"
+    return result
+
+
 def convert_dict_to_hcl(d: dict):
     result = "{"
     for k, v in d.items():

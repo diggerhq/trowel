@@ -15,7 +15,11 @@ from exceptions import (
     TerraformFormatError,
     ValidationError,
 )
-from hcl import convert_string_to_hcl, convert_dict_to_hcl, convert_config_parameters_to_hcl
+from hcl import (
+    convert_string_to_hcl,
+    convert_dict_to_hcl,
+    convert_config_parameters_to_hcl, convert_secrets_list_to_hcl,
+)
 from validators import validate_bastion_parameters
 
 
@@ -213,7 +217,7 @@ def format_generated_terraform(terraform_dir):
         terraform_format(terraform_dir)
     except subprocess.CalledProcessError:
         print("Failed to format terraform project.")
-        #raise TerraformFormatError("Failed to format terraform project.")
+        # raise TerraformFormatError("Failed to format terraform project.")
 
     # and then delete all empty lines in tf files
     files = [f for f in os.listdir(terraform_dir) if re.match(r"^.*\.tf", f)]
@@ -307,34 +311,45 @@ def process_vpc_module(dest_dir, terraform_options, repo, repo_branch, debug=Fal
 
 
 def process_secrets_mapping(mappings: list):
-    result = {}
+    result = []
     for i in mappings:
+        item = {}
         name, block_ssm = i.split(":")
-        block_name, ssm = block_ssm.split(".")
-        print(f"name: {name}, block: {block_name}, ssm: {ssm}")
-        result[name] = "module." + block_ssm
+        # block_name, ssm = block_ssm.split(".")
+        # print(f"name: {name}, block: {block_name}, ssm: {ssm}")
+        item["key"] = name
+        item["value"] = "module." + block_ssm
+
+        result.append(item)
     return result
 
 
-def process_ecs_module(dest_dir, block_options, repo, repo_branch, debug=False):
+def process_ecs_module(
+    dest_dir, block_options: dict, digger_config: dict, repo, repo_branch, debug=False
+):
     print(f"process_ecs_module, dest_dir: {dest_dir}")
     recreate_dir(dest_dir)
 
+    # copy "shared" env variables from the root level
+    environment_variables = []
+    if "environment_variables" in digger_config:
+        environment_variables = digger_config["environment_variables"]
     if "environment_variables" in block_options:
-        block_options["environment_variables"] = convert_string_to_hcl(
-            json.dumps(block_options["environment_variables"], indent=2)
-        )
+        environment_variables += block_options["environment_variables"]
 
+    block_options["environment_variables"] = convert_string_to_hcl(
+        json.dumps(environment_variables, indent=2)
+    )
+
+    # copy "shared" secrets from the root level
+    secrets = []
+    secrets_mappings = []
+    if "secrets" in digger_config:
+        secrets = digger_config["secrets"]
     if "secret_mappings" in block_options:
-        print(block_options["secret_mappings"])
-        secrets = process_secrets_mapping(block_options["secret_mappings"])
-        if "secrets" not in block_options:
-            block_options["secrets"] = {}
+        secrets_mappings = process_secrets_mapping(block_options["secret_mappings"])
 
-        block_options["secrets"] |= secrets
-        # terraform_options["secret_mappings"] = convert_to_hcl(
-        #    json.dumps(terraform_options["secret_mappings"], indent=2)
-        # )
+    block_options["secrets"] = convert_secrets_list_to_hcl(secrets, secrets_mappings)
 
     run_jinja_for_dir(repo, repo_branch, block_options, dest_dir)
 
@@ -389,7 +404,7 @@ def process_tf_templates(dest_dir, terraform_options, tf_templates_dir, debug=Fa
 
     templates = [
         "main.template.tf",
-        "ssm.template.tf",
+        "secrets.template.tf",
         "dns.template.tf",
         "outputs.template.tf",
         "terraform.template.tfvars",
@@ -590,6 +605,7 @@ def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
             process_ecs_module(
                 dest_dir=ecs_terraform_dir,
                 block_options=block_options,
+                digger_config=config,
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
