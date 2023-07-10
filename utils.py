@@ -349,7 +349,10 @@ def process_ecs_module(
     if "secret_mappings" in block_options:
         secrets_mappings = process_secrets_mapping(block_options["secret_mappings"])
 
-    block_options["secrets"] = convert_secrets_list_to_hcl(secrets, secrets_mappings)
+    aws_region = digger_config["aws_region"]
+    aws_account_id = digger_config["aws_account_id"]
+
+    block_options["secrets"] = convert_secrets_list_to_hcl(secrets, secrets_mappings, aws_region, aws_account_id)
 
     run_jinja_for_dir(repo, repo_branch, block_options, dest_dir)
 

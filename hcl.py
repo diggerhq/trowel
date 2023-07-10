@@ -2,10 +2,10 @@ def convert_string_to_hcl(t):
     return str(t).replace("'", '"')
 
 
-def convert_secrets_list_to_hcl(secrets, secret_mappings) -> str:
+def convert_secrets_list_to_hcl(secrets, secret_mappings, aws_region, aws_account_id) -> str:
     result = "[\n"
     for s in secrets:
-        result += '{ "key": "' + s['key'] + '", "value": "' + s['value'] + '"},\n'
+        result += '{ "key": "' + s['key'] + f'", "value": "arn:aws:ssm:{aws_region}:{aws_account_id}:parameter' + s['value'] + '"},\n'
     for s in secret_mappings:
         result += '{ "key": "' + s['key'] + '", "value": ' + s['value'] + '},\n'
     result += "]\n"
