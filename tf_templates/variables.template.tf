@@ -1,5 +1,6 @@
 variable "hosted_zone_name" {}
 variable "aws_region" {}
+variable "aws_account_id" {}
 variable "tags" {}
 
 {% for block in blocks %}
@@ -27,4 +28,8 @@ variable "shared_alb_access_logs_expiration_days" {}
 variable "bastion_ssh_key_name" {}
 variable "bastion_instance_name" {}
 variable "bastion_allowed_hosts" {}
+{% endif %}
+
+{% if shared_ecs_cluster is defined and shared_ecs_cluster %}
+variable "shared_ecs_cluster_name" {}
 {% endif %}

@@ -2,6 +2,7 @@ provider "aws" {
   region = var.aws_region
 }
 
+
 {% for block in blocks %}
   {% if block.type == "vpc" %}
     module "{{ block.name}}" {
@@ -20,10 +21,16 @@ provider "aws" {
       source = "./{{ block.name }}"
       {% endif %}
       vpc_id = module.{{ network_module_name }}.vpc_id
-      ecs_cluster_name = "{{block.aws_app_identifier}}"
+
       ecs_service_name = "{{block.aws_app_identifier}}"
       alb_subnet_ids = {{block.alb_subnet_ids}}
       ecs_subnet_ids = {{block.ecs_subnet_ids}}
+
+      {% if shared_ecs_cluster is defined and shared_ecs_cluster %}
+        ecs_cluster_name = aws_ecs_cluster.shared_ecs_cluster.name
+      {% else %}
+        ecs_cluster_name = "{{block.aws_app_identifier}}"
+      {% endif %}
 
       {% if block.enable_https_listener is defined and block.enable_https_listener and block.subdomain_name is defined %}
         lb_ssl_certificate_arn=aws_acm_certificate.{{ block.name }}_acm_certificate.arn
@@ -37,11 +44,12 @@ provider "aws" {
       {{ "internal=" + block.internal | lower if block.internal is defined else '' }}
       {{ "health_check=\"" + block.health_check + "\"" | lower if block.health_check is defined else '' }}
       {{ "health_check_matcher=\"" + block.health_check_matcher + "\"" | lower if block.health_check_matcher is defined else '' }}
-      {{ 'environment_variables=' + block.environment_variables if block.environment_variables is defined  else '' }}
+
+      {{ 'environment_variables=local.' + block.name | underscorify + '_envs' if block.environment_variables is defined and block.environment_variables | length > 0  else '' }}
       {{ 'secrets=local.' + block.name | underscorify + '_secrets' if block.secrets is defined and block.secrets | length > 0  else '' }}
 
-      {{ 'ecs_autoscale_min_instances=' + block.ecs_autoscale_min_instances if block.ecs_autoscale_min_instances is defined  else '' }}
-      {{ 'ecs_autoscale_max_instances=' + block.ecs_autoscale_max_instances if block.ecs_autoscale_max_instances is defined  else '' }}
+      {{ 'ecs_autoscale_min_instances=' + block.ecs_autoscale_min_instances|string if block.ecs_autoscale_min_instances is defined  else '' }}
+      {{ 'ecs_autoscale_max_instances=' + block.ecs_autoscale_max_instances|string if block.ecs_autoscale_max_instances is defined  else '' }}
 
       {{ "datadog_key_ssm_arn=aws_ssm_parameter.datadog_key.arn" if block.datadog_enabled is defined else '' }}
 
@@ -51,6 +59,11 @@ provider "aws" {
 
       region = var.aws_region
       tags = {{ tags }}
+
+      {% if shared_ecs_cluster is defined and shared_ecs_cluster %}
+        depends_on = [aws_ecs_cluster.shared_ecs_cluster]
+      {% endif %}
+
     }
   {% elif block.type == "resource" and block.resource_type == "database" %}
     module "{{ block.name }}" {
@@ -134,6 +147,17 @@ module "bastion" {
   instance_name     = var.bastion_instance_name
   internal_networks = module.{{ network_module_name }}.public_subnets_cidr_blocks
   allowed_hosts = var.bastion_allowed_hosts
+  tags = var.tags
+}
+{% endif %}
+
+{% if shared_ecs_cluster is defined and shared_ecs_cluster %}
+resource "aws_ecs_cluster" "shared_ecs_cluster" {
+  name = var.shared_ecs_cluster_name
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
   tags = var.tags
 }
 {% endif %}

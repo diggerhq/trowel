@@ -1,6 +1,8 @@
 
 hosted_zone_name = "{{ hosted_zone_name }}"
 aws_region = "{{ aws_region }}"
+aws_account_id = "{{ aws_account_id }}"
+
 tags = {{ tags }}
 
 {% for block in blocks %}
@@ -28,4 +30,8 @@ tags = {{ tags }}
   bastion_ssh_key_name = "{{ bastion_ssh_key_name }}"
   bastion_instance_name = "{{ bastion_instance_name }}"
   bastion_allowed_hosts = {{ bastion_allowed_hosts }}
+{% endif %}
+
+{% if shared_ecs_cluster is defined and shared_ecs_cluster %}
+  shared_ecs_cluster_name = "{{ shared_ecs_cluster_name }}"
 {% endif %}

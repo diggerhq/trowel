@@ -18,7 +18,8 @@ from exceptions import (
 from hcl import (
     convert_string_to_hcl,
     convert_dict_to_hcl,
-    convert_config_parameters_to_hcl, convert_secrets_list_to_hcl,
+    convert_config_parameters_to_hcl,
+    convert_secrets_list_to_hcl,
 )
 from validators import validate_bastion_parameters
 
@@ -325,14 +326,33 @@ def process_secrets_mapping(mappings: list):
 
 
 def process_ecs_module(
-    terraform_dir, block_options: dict, digger_config: dict, repo, repo_branch, debug=False, datadog_enabled=False
+    terraform_dir,
+    block_options: dict,
+    digger_config: dict,
+    repo,
+    repo_branch,
+    debug=False,
+    datadog_enabled=False,
+    config_dir=None,
 ):
-    if "shared_terraform_module" in block_options and block_options["shared_terraform_module"]:
-        ecs_terraform_dir = f"{terraform_dir}/{block_options['shared_terraform_module_name']}"
+    if (
+        "shared_terraform_module" in block_options
+        and block_options["shared_terraform_module"]
+    ):
+        ecs_terraform_dir = (
+            f"{terraform_dir}/{block_options['shared_terraform_module_name']}"
+        )
     else:
         ecs_terraform_dir = f"{terraform_dir}/{block_options['name']}"
     print(f"process_ecs_module, dest_dir: {ecs_terraform_dir}")
     recreate_dir(ecs_terraform_dir)
+
+    env_secrets = None
+    # read secrets and envs from file if it does exist
+    if config_dir and os.path.isfile(config_dir + "/" + block_options["name"]):
+        with open(config_dir + "/" + block_options["name"], "r") as fp:
+            env_secrets = json.load(fp)
+
 
     # copy "shared" env variables from the root level
     environment_variables = []
@@ -340,6 +360,8 @@ def process_ecs_module(
         environment_variables = digger_config["environment_variables"]
     if "environment_variables" in block_options:
         environment_variables += block_options["environment_variables"]
+    if env_secrets:
+        environment_variables += env_secrets["environment"]
 
     block_options["environment_variables"] = convert_string_to_hcl(
         json.dumps(environment_variables, indent=2)
@@ -352,13 +374,24 @@ def process_ecs_module(
         secrets += digger_config["secrets"]
     if "secrets" in block_options:
         secrets += block_options["secrets"]
+    if env_secrets:
+        secrets += env_secrets["secrets"]
     if "secret_mappings" in block_options:
         secrets_mappings = process_secrets_mapping(block_options["secret_mappings"])
 
     aws_region = digger_config["aws_region"]
     aws_account_id = digger_config["aws_account_id"]
 
-    block_options["secrets"] = convert_secrets_list_to_hcl(secrets, secrets_mappings, aws_region, aws_account_id)
+    # copy shared_ecs_cluster settings from the root level
+    if "shared_ecs_cluster" in digger_config and digger_config["shared_ecs_cluster"]:
+        block_options["shared_ecs_cluster"] = digger_config["shared_ecs_cluster"]
+        block_options["shared_ecs_cluster_name"] = digger_config[
+            "shared_ecs_cluster_name"
+        ]
+
+    block_options["secrets"] = convert_secrets_list_to_hcl(
+        secrets, secrets_mappings, aws_region, aws_account_id
+    )
 
     run_jinja_for_dir(repo, repo_branch, block_options, ecs_terraform_dir)
 
@@ -373,8 +406,6 @@ def process_ecs_module(
 
     if debug:
         add_debug_info(ecs_terraform_dir, block_options)
-
-
 
 
 def process_s3_module(dest_dir, terraform_options, repo, repo_branch, debug=False):
@@ -425,6 +456,7 @@ def process_tf_templates(dest_dir, terraform_options, tf_templates_dir, debug=Fa
     templates = [
         "main.template.tf",
         "secrets.template.tf",
+        "envs.template.tf",
         "dns.template.tf",
         "outputs.template.tf",
         "terraform.template.tfvars",
@@ -511,7 +543,9 @@ def parse_module_target(target):
         raise PayloadValidationException(f"Target {target} is in a wrong format.")
 
 
-def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
+def generate_terraform_project(
+    terraform_project_dir, tf_templates_dir, config, config_dir=None
+):
     """
     generates terraform project for specified options in config and return it as base64 encoded zip file in
     the following json:
@@ -520,6 +554,7 @@ def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
           "body": encoded_zip,
         }
 
+    :param config_dir:
     :param terraform_project_dir:
     :param tf_templates_dir
     :param config:
@@ -628,7 +663,8 @@ def generate_terraform_project(terraform_project_dir, tf_templates_dir, config):
                 repo=repo,
                 repo_branch=branch,
                 debug=debug,
-                datadog_enabled=datadog_enabled
+                datadog_enabled=datadog_enabled,
+                config_dir=config_dir,
             )
 
             updated_config["blocks"].append(m)

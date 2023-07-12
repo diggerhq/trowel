@@ -16,7 +16,7 @@ def convert_secrets_list_to_hcl(
     """
     result = "[\n"
     for s in secrets:
-        secret_arn = f"arn:aws:ssm:{aws_region}:{aws_account_id}:parameter{s['value']}"
+        secret_arn = f"arn:aws:ssm:${{var.aws_region}}:${{var.aws_account_id}}:parameter{s['value']}"
         result += '{ "key": "' + s["key"] + '", "value": "' + secret_arn + '" },\n'
     for s in secret_mappings:
         result += '{ "key": "' + s["key"] + '", "value": ' + s["value"] + "},\n"
