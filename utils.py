@@ -353,15 +353,29 @@ def process_ecs_module(
         with open(config_dir + "/" + block_options["name"], "r") as fp:
             env_secrets = json.load(fp)
 
+            env_params = {
+                "qa": {
+                    "$APP_ENV": "QA",
+                    "$CACHE_HOST": "https://olaclick.dev/ms-cache",
+                    "$DB_CONNECTION": "mysql",
+                    "$DEBUGBAR_ENABLED": "true",
+                    "$AWS_DEFAULT_REGION": "us-east-1",
+                },
+                "prod": {},
+            }
+
+            for e in env_secrets["environment"]:
+                if e["value"] in env_params["qa"].keys():
+                    e["value"] = env_params["qa"][e["value"]]
 
     # copy "shared" env variables from the root level
     environment_variables = []
     if "environment_variables" in digger_config:
-        environment_variables = digger_config["environment_variables"]
+        environment_variables = digger_config["environment_variables"].copy()
     if "environment_variables" in block_options:
-        environment_variables += block_options["environment_variables"]
+        environment_variables += block_options["environment_variables"].copy()
     if env_secrets:
-        environment_variables += env_secrets["environment"]
+        environment_variables += env_secrets["environment"].copy()
 
     block_options["environment_variables"] = convert_string_to_hcl(
         json.dumps(environment_variables, indent=2)
@@ -464,13 +478,20 @@ def process_tf_templates(dest_dir, terraform_options, tf_templates_dir, debug=Fa
     ]
 
     # check if shared ALB needs to be created
+    if "api_gateway" in terraform_options and terraform_options["api_gateway"] is True:
+        if "api_gateway_name" not in terraform_options:
+            raise ValueError(
+                f"api_gateway_name param is missing. If 'api_gateway' is true, then 'api_gateway_name' is mandatory."
+            )
+        templates.append("api_gateway.template.tf")
+
+    # check if shared ALB needs to be created
     if "shared_alb" in terraform_options and terraform_options["shared_alb"] is True:
         if "shared_alb_name" not in terraform_options:
             raise ValueError(
                 f"shared_alb_name param is missing. If 'shared_alb' is true, then 'shared_alb_name' is mandatory."
             )
         templates.append("shared_alb.template.tf")
-        terraform_options["shared_alb_name"] = terraform_options["shared_alb_name"]
 
         # shared alb is internal by default
         terraform_options["internal"] = True
@@ -711,7 +732,13 @@ def generate_terraform_project(
                 private_subnets_ids = f"module.{network_module_name}.private_subnets"
                 m["private_subnets_ids"] = private_subnets_ids
 
-            resource_terraform_dir = f"{terraform_dir}/{m['name']}"
+            if "shared_terraform_module" in m and m["shared_terraform_module"]:
+                resource_terraform_dir = (
+                    f"{terraform_dir}/{m['shared_terraform_module_name']}"
+                )
+            else:
+                resource_terraform_dir = f"{terraform_dir}/{m['name']}"
+
             m["security_groups"] = ecs_security_groups
 
             block_options = m  # todo: move to a separate dict

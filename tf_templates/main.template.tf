@@ -67,7 +67,11 @@ provider "aws" {
     }
   {% elif block.type == "resource" and block.resource_type == "database" %}
     module "{{ block.name }}" {
-      source = "./{{ block.name }}"
+      {% if block.shared_terraform_module is defined and block.shared_terraform_module %}
+        source = "./{{ block.shared_terraform_module_name }}"
+      {% else %}
+        source = "./{{ block.name }}"
+      {% endif %}
       vpc_id = module.{{ network_module_name }}.vpc_id
       identifier = "{{block.aws_app_identifier}}"
       aws_app_identifier = "{{block.aws_app_identifier}}"
@@ -76,6 +80,7 @@ provider "aws" {
       {{ 'allocated_storage="' + block.allocated_storage + '"' if block.allocated_storage is defined else '' }}
       {{ 'storage_type="' + block.storage_type + '"' if block.storage_type is defined  else '' }}
       {{ 'engine="' + block.engine + '"' if block.engine is defined  else '' }}
+      {{ 'rds_port="' + block.rds_port + '"' if block.rds_port is defined  else '' }}
       {{ 'ingress_port="' + block.ingress_port + '"' if block.ingress_port is defined  else '' }}
       {{ 'connection_schema="' + block.connection_schema + '"' if block.connection_schema is defined  else '' }}
       {{ 'engine_version="' + block.engine_version + '"' if block.engine_version is defined  else '' }}

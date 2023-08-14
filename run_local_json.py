@@ -11,9 +11,9 @@ config_path = os.path.expanduser("~/tmp/olaclick/dgctl.json")
 config_dir = os.path.expanduser("~/tmp/olaclick")
 terraform_project_path = os.path.expanduser("~/tmp/olaclick/qa")
 
-config_path = os.path.expanduser("~/projects/cloud-infra/dgctl.json")
-config_dir = os.path.expanduser("~/projects/cloud-infra")
-terraform_project_path = os.path.expanduser("~/projects/cloud-infra/generated")
+#config_path = os.path.expanduser("~/projects/cloud-infra/dgctl.json")
+#config_dir = os.path.expanduser("~/projects/cloud-infra")
+#terraform_project_path = os.path.expanduser("~/projects/cloud-infra/generated")
 
 with open(config_path, 'r') as f:
     bundle_spec = json.loads(f.read())
