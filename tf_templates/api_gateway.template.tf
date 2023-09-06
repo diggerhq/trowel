@@ -95,7 +95,7 @@ resource "aws_lb_target_group" "{{api_gateway_name}}_tg" {
 resource "aws_lb_target_group_attachment" "{{api_gateway_name}}_tga" {
   target_group_arn = aws_lb_target_group.{{api_gateway_name}}_tg.arn
   # target to attach to this target group
-  target_id = aws_alb.main.id
+  target_id = aws_alb.shared_alb.id
   #  If the target type is alb, the targeted Application Load Balancer must have at least one listener whose port matches the target group port.
   port = 80
 }

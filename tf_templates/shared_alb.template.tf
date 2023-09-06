@@ -18,15 +18,15 @@ locals {
   lb_ssl_certificate_arn         = null
   dggr_acm_certificate_arn       = null
   vpc_id                         = module.{{ network_module_name }}.vpc_id
-  alb_zone_id                     = aws_alb.main.zone_id
+  alb_zone_id                     = aws_alb.shared_alb.zone_id
   //alb_https_listener_arn          =try(aws_lb_listener.https[0].arn, null)
   alb_http_listener_arn           =try(aws_alb_listener.http.arn, null)
-  alb_arn                         =aws_alb.main.arn
-  alb_dns                         =aws_alb.main.dns_name
+  alb_arn                         =aws_alb.shared_alb.arn
+  alb_dns                         =aws_alb.shared_alb.dns_name
   listener_arn                    =aws_alb_listener.http.arn
 }
 
-resource "aws_security_group" "lb_sg" {
+resource "aws_security_group" "shared_lb_sg" {
   name        = local.lb_sg_name
   description = "Allow connections from external resources."
   vpc_id      = local.vpc_id
@@ -40,7 +40,7 @@ resource "aws_security_group_rule" "lb_ingress_rule" {
   to_port           = local.lb_port
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.lb_sg.id
+  security_group_id = aws_security_group.shared_lb_sg.id
 }
 
 resource "aws_security_group_rule" "lb_egress_rule" {
@@ -50,17 +50,17 @@ resource "aws_security_group_rule" "lb_egress_rule" {
   to_port           = 0
   protocol          = -1
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.lb_sg.id
+  security_group_id = aws_security_group.shared_lb_sg.id
 }
 
 
-resource "aws_alb" "main" {
+resource "aws_alb" "shared_alb" {
   name = local.alb_name
 
   # launch lbs in public or private subnets based on "internal" variable
   internal        = {{ internal | lower }}
   subnets         = module.{{ network_module_name }}.private_subnets
-  security_groups = [aws_security_group.lb_sg.id]
+  security_groups = [aws_security_group.shared_lb_sg.id]
   tags            = {{ tags }}
 
   # enable access logs in order to get support from aws
@@ -153,7 +153,7 @@ POLICY
 # (delete this file if you only want https)
 
 resource "aws_alb_listener" "http" {
-  load_balancer_arn = aws_alb.main.id
+  load_balancer_arn = aws_alb.shared_alb.id
   port              = local.lb_port
   protocol          = local.lb_protocol
 
@@ -175,7 +175,7 @@ resource "aws_alb_listener" "http" {
 
 resource "aws_alb_listener" "https" {
   count = (local.lb_ssl_certificate_arn==null && local.dggr_acm_certificate_arn==null) ? 0 : 1
-  load_balancer_arn = aws_alb.main.arn
+  load_balancer_arn = aws_alb.shared_alb.arn
   port              = local.lb_ssl_port
   protocol          = local.lb_ssl_protocol
   ssl_policy        = "ELBSecurityPolicy-2016-08"

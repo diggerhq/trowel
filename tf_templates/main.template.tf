@@ -56,6 +56,11 @@ provider "aws" {
       {{ "listener_arn=local.listener_arn" if block.listener_arn is defined else '' }}
       {{ "alb_arn=local.alb_arn" if block.alb_arn is defined else '' }}
       {{ "listener_rule_path_pattern=" + block.listener_rule_path_pattern if block.listener_rule_path_pattern is defined else '' }}
+      {{ "logs_retention_in_days=" + block.logs_retention_in_days|string if block.logs_retention_in_days is defined else '' }}
+
+      {% if shared_alb is defined and shared_alb %}
+        service_security_groups = [aws_security_group.shared_lb_sg.id]
+      {% endif %}
 
       region = var.aws_region
       tags = {{ tags }}

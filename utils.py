@@ -20,6 +20,7 @@ from hcl import (
     convert_dict_to_hcl,
     convert_config_parameters_to_hcl,
     convert_secrets_list_to_hcl,
+    replace_terraform_parameters,
 )
 from validators import validate_bastion_parameters
 
@@ -349,8 +350,8 @@ def process_ecs_module(
 
     env_secrets = None
     # read secrets and envs from file if it does exist
-    if config_dir and os.path.isfile(config_dir + "/" + block_options["name"]):
-        with open(config_dir + "/" + block_options["name"], "r") as fp:
+    if config_dir and os.path.isfile(config_dir + "/envs/" + block_options["name"]):
+        with open(config_dir + "/envs/" + block_options["name"], "r") as fp:
             env_secrets = json.load(fp)
 
             env_params = {
@@ -364,9 +365,14 @@ def process_ecs_module(
                 "prod": {},
             }
 
+            print(f"name: {block_options['name']}")
             for e in env_secrets["environment"]:
                 if e["value"] in env_params["qa"].keys():
                     e["value"] = env_params["qa"][e["value"]]
+                print("-------------------------------------")
+                print(e["value"])
+                if str(e["value"]).startswith("module."):
+                    pass
 
     # copy "shared" env variables from the root level
     environment_variables = []
@@ -379,6 +385,11 @@ def process_ecs_module(
 
     block_options["environment_variables"] = convert_string_to_hcl(
         json.dumps(environment_variables, indent=2)
+    )
+
+    # replace terraform parameters in ##param## with param without quotes
+    block_options["environment_variables"] = replace_terraform_parameters(
+        block_options["environment_variables"]
     )
 
     # copy "shared" secrets from the root level
@@ -402,6 +413,10 @@ def process_ecs_module(
         block_options["shared_ecs_cluster_name"] = digger_config[
             "shared_ecs_cluster_name"
         ]
+        if "shared_ecs_capacity_provider_strategy_is_fargate_spot" in digger_config:
+            block_options["capacity_provider_strategy_is_fargate_spot"] = digger_config[
+                "shared_ecs_capacity_provider_strategy_is_fargate_spot"
+            ]
 
     block_options["secrets"] = convert_secrets_list_to_hcl(
         secrets, secrets_mappings, aws_region, aws_account_id

@@ -7,9 +7,9 @@ from pathlib import Path
 from utils import generate_terraform_project
 
 
-config_path = os.path.expanduser("~/tmp/olaclick/dgctl.json")
-config_dir = os.path.expanduser("~/tmp/olaclick")
-terraform_project_path = os.path.expanduser("~/tmp/olaclick/qa")
+config_path = os.path.expanduser("~/tmp/olaclick/qa/dgctl.json")
+config_dir = os.path.expanduser("~/tmp/olaclick/qa")
+terraform_project_path = os.path.expanduser("~/tmp/olaclick/qa/generated")
 
 #config_path = os.path.expanduser("~/projects/cloud-infra/dgctl.json")
 #config_dir = os.path.expanduser("~/projects/cloud-infra")
